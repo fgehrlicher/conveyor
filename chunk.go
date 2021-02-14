@@ -24,17 +24,17 @@ type ChunkResult struct {
 	Err   error
 }
 
-func SplitFileInChunks(chunkSize int64, fileIn string, fileOut io.Writer) ([]Chunk, error) {
+func SplitFileInChunks(fileIn string, chunkSize int64, fileOut io.Writer) ([]Chunk, error) {
+	info, err := os.Stat(fileIn)
+	if err != nil {
+		return nil, err
+	}
+
 	var (
 		currentOffset int64 = 0
 		currentChunk        = 1
 		chunks        []Chunk
 	)
-
-	info, err := os.Stat(fileIn)
-	if err != nil {
-		return nil, err
-	}
 
 	for currentOffset <= info.Size() {
 		chunks = append(chunks, Chunk{

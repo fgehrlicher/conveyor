@@ -7,15 +7,16 @@ import (
 )
 
 type Queue struct {
-	workers    int
-	chunkCount int
-	chunkSize  int64
+	workers       int
+	chunkCount    int
+	chunkSize     int64
+	lineProcessor LineProcessor
 
 	tasks  chan Chunk
 	result chan ChunkResult
 }
 
-func NewQueue(chunks []Chunk, workers int, chunkSize int64) *Queue {
+func NewQueue(chunks []Chunk, workers int, chunkSize int64, lineProcessor LineProcessor) *Queue {
 	tasks := make(chan Chunk, len(chunks))
 	for _, chunk := range chunks {
 		tasks <- chunk
@@ -23,11 +24,12 @@ func NewQueue(chunks []Chunk, workers int, chunkSize int64) *Queue {
 	close(tasks)
 
 	return &Queue{
-		workers:    workers,
-		tasks:      tasks,
-		result:     make(chan ChunkResult, workers),
-		chunkCount: len(chunks),
-		chunkSize:  chunkSize,
+		workers:       workers,
+		tasks:         tasks,
+		result:        make(chan ChunkResult, workers),
+		chunkCount:    len(chunks),
+		chunkSize:     chunkSize,
+		lineProcessor: lineProcessor,
 	}
 }
 

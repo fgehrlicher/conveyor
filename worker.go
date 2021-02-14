@@ -4,15 +4,11 @@ import (
 	"bytes"
 	"errors"
 	"io"
-	"log"
 	"os"
 	"sync"
-
-	"github.com/valyala/fastjson"
 )
 
-// Chosen by fair dice roll.
-const overflowScanSize = 1024
+type LineProcessor func (line []byte, outBuff []byte) error
 
 // All buffs and handles are kept allocated for all iterations of Worker.Process.
 type Worker struct {
@@ -25,23 +21,23 @@ type Worker struct {
 	chunk        *Chunk
 	buff         []byte
 	overflowBuff []byte
-	csvBuff      []byte
+	outBuff      []byte
 	buffHead     int
-	csvBuffHead  int
+	outBuffHead  int
 }
 
-// NewWorker returns a new Worker whose buffer has the default size.
-func NewWorker(tasks chan Chunk, result chan ChunkResult, chunkSize int64, waitGroup *sync.WaitGroup) *Worker {
+// NewWorker returns a new Worker
+func NewWorker(tasks chan Chunk, result chan ChunkResult, chunkSize, overflowScanSize int64, waitGroup *sync.WaitGroup) *Worker {
 	return &Worker{
 		TasksChan:    tasks,
 		resultChan:   result,
 		waitGroup:    waitGroup,
 		chunkSize:    chunkSize,
 		buff:         make([]byte, chunkSize),
+		outBuff:      make([]byte, chunkSize),
 		overflowBuff: make([]byte, overflowScanSize),
-		csvBuff:      make([]byte, chunkSize),
 		buffHead:     0,
-		csvBuffHead:  0,
+		outBuffHead:  0,
 	}
 }
 
@@ -86,12 +82,12 @@ func (worker *Worker) Process() error {
 		return err
 	}
 
-	err = worker.convertBuffToCsv()
+	err = worker.processBuff()
 	if err != nil {
 		return err
 	}
 
-	err = worker.writeCsvBuff()
+	err = worker.writeOutBuff()
 	if err != nil {
 		return err
 	}
@@ -141,9 +137,9 @@ func (worker *Worker) prepareFileHandles() (err error) {
 func (worker *Worker) resetBuffers() {
 	worker.buff = worker.buff[:cap(worker.buff)]
 	worker.overflowBuff = worker.overflowBuff[:cap(worker.overflowBuff)]
-	worker.csvBuff = worker.csvBuff[:cap(worker.csvBuff)]
+	worker.outBuff = worker.outBuff[:cap(worker.outBuff)]
 	worker.buffHead = 0
-	worker.csvBuffHead = 0
+	worker.outBuffHead = 0
 }
 
 // readChunkInBuff reads up to len(worker.buff) bytes from the file.
@@ -175,7 +171,7 @@ func (worker *Worker) readOverflowInBuff() error {
 		}
 
 		buffHead = buffSize
-		buffSize += overflowScanSize
+		buffSize += buffSize
 		newBuff := make([]byte, buffSize)
 
 		copy(newBuff, worker.overflowBuff)
@@ -185,9 +181,9 @@ func (worker *Worker) readOverflowInBuff() error {
 	return nil
 }
 
-// convertBuffToCsv converts all the json content in Worker.buff and
-// Worker.overflowBuff to csv and safes it into Worker.csvBuff
-func (worker *Worker) convertBuffToCsv() error {
+// processBuff converts all the json content in Worker.buff and
+// Worker.overflowBuff to csv and safes it into Worker.outBuff
+func (worker *Worker) processBuff() error {
 	var (
 		line            []byte
 		noLinebreakLeft bool
@@ -209,17 +205,17 @@ func (worker *Worker) convertBuffToCsv() error {
 			copy(line[len(remainingBuff):], worker.overflowBuff)
 
 			csvLine := worker.lineToCSV(line)
-			copy(worker.csvBuff[worker.csvBuffHead:], csvLine)
-			worker.csvBuff = worker.csvBuff[:worker.csvBuffHead+len(csvLine)]
+			copy(worker.outBuff[worker.outBuffHead:], csvLine)
+			worker.outBuff = worker.outBuff[:worker.outBuffHead+len(csvLine)]
 			worker.chunk.LinesProcessed++
 
 			break
 		}
 
 		csvLine := worker.lineToCSV(worker.buff[worker.buffHead : worker.buffHead+relativeIndex])
-		copy(worker.csvBuff[worker.csvBuffHead:], csvLine)
+		copy(worker.outBuff[worker.outBuffHead:], csvLine)
 
-		worker.csvBuffHead += len(csvLine)
+		worker.outBuffHead += len(csvLine)
 		worker.buffHead += relativeIndex + 1
 		line = line[:0]
 		worker.chunk.LinesProcessed++
@@ -232,19 +228,8 @@ func (worker *Worker) convertBuffToCsv() error {
 	return nil
 }
 
-func (worker *Worker) lineToCSV(line []byte) []byte {
-	var p fastjson.Parser
-	v, err := p.Parse(string(line))
-	if err != nil {
-		log.Fatal(err)
-	}
 
-	_ = v
-
-	return []byte("," + "\n")
-}
-
-func (worker *Worker) writeCsvBuff() (err error) {
-	_, err = worker.chunk.out.Write(worker.csvBuff)
+func (worker *Worker) writeOutBuff() (err error) {
+	_, err = worker.chunk.out.Write(worker.outBuff)
 	return
 }
