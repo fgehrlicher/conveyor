@@ -41,7 +41,7 @@ func (queue *Queue) Work() []ChunkResult {
 
 	waitGroup.Add(queue.workers)
 	for i := 0; i < queue.workers; i++ {
-		go NewWorker(queue.tasks, queue.result, queue.chunkSize, &waitGroup).Work()
+		go NewWorker(queue.tasks, queue.result, queue.chunkSize, 1024, &waitGroup).Work()
 	}
 
 	quit := make(chan int)

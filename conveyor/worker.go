@@ -3,19 +3,20 @@ package convert
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"sync"
 )
 
-type LineProcessor func (line []byte, outBuff []byte) error
 
 // All buffs and handles are kept allocated for all iterations of Worker.Process.
 type Worker struct {
-	TasksChan  chan Chunk
-	resultChan chan ChunkResult
-	waitGroup  *sync.WaitGroup
-	chunkSize  int64
+	TasksChan     chan Chunk
+	resultChan    chan ChunkResult
+	waitGroup     *sync.WaitGroup
+	chunkSize     int64
+	lineProcessor LineProcessor
 
 	handle       *os.File
 	chunk        *Chunk
@@ -204,7 +205,11 @@ func (worker *Worker) processBuff() error {
 			copy(line[:len(remainingBuff)], remainingBuff)
 			copy(line[len(remainingBuff):], worker.overflowBuff)
 
-			csvLine := worker.lineToCSV(line)
+			csvLine, err := worker.lineProcessor.Process(line)
+			if err != nil {
+				return fmt.Errorf("processBuff error: %w", err)
+			}
+
 			copy(worker.outBuff[worker.outBuffHead:], csvLine)
 			worker.outBuff = worker.outBuff[:worker.outBuffHead+len(csvLine)]
 			worker.chunk.LinesProcessed++
@@ -212,7 +217,10 @@ func (worker *Worker) processBuff() error {
 			break
 		}
 
-		csvLine := worker.lineToCSV(worker.buff[worker.buffHead : worker.buffHead+relativeIndex])
+		csvLine, err := worker.lineProcessor.Process(line)
+		if err != nil {
+			return fmt.Errorf("processBuff error: %w", err)
+		}
 		copy(worker.outBuff[worker.outBuffHead:], csvLine)
 
 		worker.outBuffHead += len(csvLine)
@@ -227,7 +235,6 @@ func (worker *Worker) processBuff() error {
 
 	return nil
 }
-
 
 func (worker *Worker) writeOutBuff() (err error) {
 	_, err = worker.chunk.out.Write(worker.outBuff)
