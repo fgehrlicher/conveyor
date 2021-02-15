@@ -1,4 +1,4 @@
-package convert
+package conveyor
 
 import (
 	"bytes"
@@ -9,14 +9,13 @@ import (
 	"sync"
 )
 
-
 // All buffs and handles are kept allocated for all iterations of Worker.Process.
 type Worker struct {
 	TasksChan     chan Chunk
 	resultChan    chan ChunkResult
 	waitGroup     *sync.WaitGroup
-	chunkSize     int64
 	lineProcessor LineProcessor
+	chunkSize     int64
 
 	handle       *os.File
 	chunk        *Chunk
@@ -28,17 +27,18 @@ type Worker struct {
 }
 
 // NewWorker returns a new Worker
-func NewWorker(tasks chan Chunk, result chan ChunkResult, chunkSize, overflowScanSize int64, waitGroup *sync.WaitGroup) *Worker {
+func NewWorker(tasks chan Chunk, result chan ChunkResult, lineProcessor LineProcessor, chunkSize, overflowScanSize int64, waitGroup *sync.WaitGroup) *Worker {
 	return &Worker{
-		TasksChan:    tasks,
-		resultChan:   result,
-		waitGroup:    waitGroup,
-		chunkSize:    chunkSize,
-		buff:         make([]byte, chunkSize),
-		outBuff:      make([]byte, chunkSize),
-		overflowBuff: make([]byte, overflowScanSize),
-		buffHead:     0,
-		outBuffHead:  0,
+		TasksChan:     tasks,
+		resultChan:    result,
+		waitGroup:     waitGroup,
+		chunkSize:     chunkSize,
+		lineProcessor: lineProcessor,
+		buff:          make([]byte, chunkSize),
+		outBuff:       make([]byte, chunkSize),
+		overflowBuff:  make([]byte, overflowScanSize),
+		buffHead:      0,
+		outBuffHead:   0,
 	}
 }
 
@@ -205,27 +205,32 @@ func (worker *Worker) processBuff() error {
 			copy(line[:len(remainingBuff)], remainingBuff)
 			copy(line[len(remainingBuff):], worker.overflowBuff)
 
-			csvLine, err := worker.lineProcessor.Process(line)
+			convertedLine, err := worker.lineProcessor.Process(line)
 			if err != nil {
 				return fmt.Errorf("processBuff error: %w", err)
 			}
 
-			copy(worker.outBuff[worker.outBuffHead:], csvLine)
-			worker.outBuff = worker.outBuff[:worker.outBuffHead+len(csvLine)]
+			worker.outBuff = worker.outBuff[:worker.outBuffHead+len(convertedLine)]
 			worker.chunk.LinesProcessed++
+
+			if len(convertedLine) != 0 {
+				copy(worker.outBuff[worker.outBuffHead:], convertedLine)
+			}
 
 			break
 		}
 
-		csvLine, err := worker.lineProcessor.Process(line)
+		convertedLine, err := worker.lineProcessor.Process(worker.buff[worker.buffHead : worker.buffHead+relativeIndex])
 		if err != nil {
 			return fmt.Errorf("processBuff error: %w", err)
 		}
-		copy(worker.outBuff[worker.outBuffHead:], csvLine)
 
-		worker.outBuffHead += len(csvLine)
+		if len(convertedLine) != 0 {
+			copy(worker.outBuff[worker.outBuffHead:], convertedLine)
+		}
+
+		worker.outBuffHead += len(convertedLine)
 		worker.buffHead += relativeIndex + 1
-		line = line[:0]
 		worker.chunk.LinesProcessed++
 
 		if worker.buffHead == worker.chunk.RealSize {

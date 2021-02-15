@@ -1,4 +1,4 @@
-package convert
+package conveyor
 
 import (
 	"fmt"
@@ -16,7 +16,7 @@ type Queue struct {
 	result chan ChunkResult
 }
 
-func NewQueue(chunks []Chunk, workers int, chunkSize int64, lineProcessor LineProcessor) *Queue {
+func NewQueue(chunks []Chunk, workers int, lineProcessor LineProcessor) *Queue {
 	tasks := make(chan Chunk, len(chunks))
 	for _, chunk := range chunks {
 		tasks <- chunk
@@ -28,38 +28,40 @@ func NewQueue(chunks []Chunk, workers int, chunkSize int64, lineProcessor LinePr
 		tasks:         tasks,
 		result:        make(chan ChunkResult, workers),
 		chunkCount:    len(chunks),
-		chunkSize:     chunkSize,
+		chunkSize:     chunks[0].Size,
 		lineProcessor: lineProcessor,
 	}
 }
 
 func (queue *Queue) Work() []ChunkResult {
 	var (
-		waitGroup sync.WaitGroup
-		results   = make([]ChunkResult, 0, queue.chunkCount)
+		wg      sync.WaitGroup
+		results = make([]ChunkResult, 0, queue.chunkCount)
 	)
 
-	waitGroup.Add(queue.workers)
+	wg.Add(queue.workers + queue.chunkCount)
+
 	for i := 0; i < queue.workers; i++ {
-		go NewWorker(queue.tasks, queue.result, queue.chunkSize, 1024, &waitGroup).Work()
+		go NewWorker(queue.tasks, queue.result, queue.lineProcessor, queue.chunkSize, 1024, &wg).Work()
 	}
 
 	quit := make(chan int)
 	go func() {
 		chunksProcessed := 0
+		var percent float32
 
 		for {
 			select {
 			case result := <-queue.result:
 				chunksProcessed++
+				percent = float32(chunksProcessed) / float32(queue.chunkCount) * 100
 
 				if result.Err == nil {
-					percent := float32(chunksProcessed) / float32(queue.chunkCount) * 100
 					percentPadding := ""
-					if percent < 10.0 {
+					if percent < 10 {
 						percentPadding = "  "
 					}
-					if percent > 10 && percent != 100 {
+					if percent >= 10 && percent != 100 {
 						percentPadding = " "
 					}
 
@@ -83,13 +85,15 @@ func (queue *Queue) Work() []ChunkResult {
 				}
 				results = append(results, result)
 
+				wg.Done()
+
 			case <-quit:
 				return
 			}
 		}
 	}()
 
-	waitGroup.Wait()
+	wg.Wait()
 	quit <- 0
 
 	return results

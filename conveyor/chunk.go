@@ -1,4 +1,4 @@
-package convert
+package conveyor
 
 import (
 	"io"
@@ -24,7 +24,11 @@ type ChunkResult struct {
 	Err   error
 }
 
-func SplitFileInChunks(fileIn string, chunkSize int64, fileOut io.Writer) ([]Chunk, error) {
+func (c ChunkResult) Ok() bool {
+	return c.Err == nil
+}
+
+func FileInChunks(fileIn string, chunkSize int64, fileOut io.Writer) ([]Chunk, error) {
 	info, err := os.Stat(fileIn)
 	if err != nil {
 		return nil, err
