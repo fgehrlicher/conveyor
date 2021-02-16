@@ -15,8 +15,6 @@ type Chunk struct {
 	LinesProcessed int
 
 	out              io.Writer
-	partialFirstLine bool
-	partialLastLine  bool
 }
 
 type ChunkResult struct {
@@ -28,8 +26,8 @@ func (c ChunkResult) Ok() bool {
 	return c.Err == nil
 }
 
-func FileInChunks(fileIn string, chunkSize int64, fileOut io.Writer) ([]Chunk, error) {
-	info, err := os.Stat(fileIn)
+func GetChunks(filePath string, chunkSize int64, out io.Writer) ([]Chunk, error) {
+	info, err := os.Stat(filePath)
 	if err != nil {
 		return nil, err
 	}
@@ -46,8 +44,8 @@ func FileInChunks(fileIn string, chunkSize int64, fileOut io.Writer) ([]Chunk, e
 			Offset:     currentOffset,
 			RealOffset: currentOffset,
 			Size:       chunkSize,
-			File:       fileIn,
-			out:        fileOut,
+			File:       filePath,
+			out:        out,
 		})
 
 		currentOffset += chunkSize

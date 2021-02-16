@@ -14,8 +14,8 @@ type Worker struct {
 	TasksChan     chan Chunk
 	resultChan    chan ChunkResult
 	waitGroup     *sync.WaitGroup
-	lineProcessor LineProcessor
 	chunkSize     int64
+	lineProcessor LineProcessor
 
 	handle       *os.File
 	chunk        *Chunk
@@ -43,52 +43,49 @@ func NewWorker(tasks chan Chunk, result chan ChunkResult, lineProcessor LineProc
 }
 
 // Work processes chunks from Worker.TasksChan until queue is empty
-func (worker *Worker) Work() {
-	defer worker.waitGroup.Done()
+func (w *Worker) Work() {
+	defer w.waitGroup.Done()
 	var err error
 
-	for chunk := range worker.TasksChan {
-		worker.chunk = &chunk
+	for chunk := range w.TasksChan {
+		w.chunk = &chunk
 
-		err = worker.Process()
-		worker.resultChan <- ChunkResult{
-			Chunk: *worker.chunk,
+		err = w.Process()
+		w.resultChan <- ChunkResult{
+			Chunk: *w.chunk,
 			Err:   err,
 		}
 	}
 }
 
 var (
-	ErrNotPartialLastLineButIncompleteLine = errors.New("no linebreak but isn't a partial last line")
-	ErrPartialOnlyOneIncompleteLine        = errors.New("no linebreak found in buff but partial first line")
+	ErrNoLinebreakInChunk = errors.New("no linebreak found in buff")
 )
 
-func (worker *Worker) Process() error {
-	defer worker.resetBuffers()
+func (w *Worker) Process() error {
+	defer w.resetBuffers()
 
-	var err error
-
-	err = worker.prepareFileHandles()
+	err := w.prepareFileHandles()
 	if err != nil {
 		return err
 	}
 
-	err = worker.readChunkInBuff()
+	err = w.readChunkInBuff()
 	if err != nil {
 		return err
 	}
 
-	err = worker.prepareBuff()
+	err = w.prepareBuff()
 	if err != nil {
 		return err
 	}
 
-	err = worker.processBuff()
+	err = w.processBuff()
 	if err != nil {
 		return err
 	}
 
-	err = worker.writeOutBuff()
+	err = w.writeOutBuff()
 	if err != nil {
 		return err
 	}
@@ -96,78 +93,73 @@ func (worker *Worker) Process() error {
 	return nil
 }
 
-func (worker *Worker) prepareBuff() error {
-	worker.chunk.partialFirstLine = worker.buff[0] != '{'
-	worker.chunk.partialLastLine = worker.buff[len(worker.buff)-1] != '\n'
-
-	if worker.chunk.partialFirstLine {
-		i := bytes.IndexByte(worker.buff, '\n')
+func (w *Worker) prepareBuff() error {
+	if w.chunk.Offset != 0 {
+		i := bytes.IndexByte(w.buff, '\n')
 		if i == -1 {
-			return ErrPartialOnlyOneIncompleteLine
+			return ErrNoLinebreakInChunk
 		}
 
-		worker.buffHead += i + 1
-		worker.chunk.RealOffset = worker.chunk.Offset + int64(i)
+		w.buffHead += i + 1
+		w.chunk.RealOffset = w.chunk.Offset + int64(i)
 	}
 
-	if worker.chunk.partialLastLine {
-		err := worker.readOverflowInBuff()
-		if err != nil {
-			return err
-		}
-
-		worker.chunk.RealSize += len(worker.overflowBuff)
+	err := w.readOverflowInBuff()
+	if err != nil {
+		return err
 	}
+
+	w.chunk.RealSize += len(w.overflowBuff)
 
 	return nil
 }
 
 // prepareFileHandles creates the main read handle and sets
 // the read offset.
-func (worker *Worker) prepareFileHandles() (err error) {
-	if worker.handle == nil || worker.handle.Name() != worker.chunk.File {
-		worker.handle, err = os.Open(worker.chunk.File)
+func (w *Worker) prepareFileHandles() (err error) {
+	if w.handle == nil || w.handle.Name() != w.chunk.File {
+		w.handle, err = os.Open(w.chunk.File)
 	}
 
-	_, err = worker.handle.Seek(worker.chunk.Offset, io.SeekStart)
+	_, err = w.handle.Seek(w.chunk.Offset, io.SeekStart)
 	return
 }
 
 // resetBuffers extend the size of all buffers to their cap and
 // resets all buffer heads.
-func (worker *Worker) resetBuffers() {
-	worker.buff = worker.buff[:cap(worker.buff)]
-	worker.overflowBuff = worker.overflowBuff[:cap(worker.overflowBuff)]
-	worker.outBuff = worker.outBuff[:cap(worker.outBuff)]
-	worker.buffHead = 0
-	worker.outBuffHead = 0
+func (w *Worker) resetBuffers() {
+	w.buff = w.buff[:cap(w.buff)]
+	w.overflowBuff = w.overflowBuff[:cap(w.overflowBuff)]
+	w.outBuff = w.outBuff[:cap(w.outBuff)]
+	w.buffHead = 0
+	w.outBuffHead = 0
 }
 
 // readChunkInBuff reads up to len(worker.buff) bytes from the file.
-func (worker *Worker) readChunkInBuff() (err error) {
-	worker.chunk.RealSize, err = worker.handle.Read(worker.buff)
-	worker.buff = worker.buff[:worker.chunk.RealSize]
+func (w *Worker) readChunkInBuff() (err error) {
+	w.chunk.RealSize, err = w.handle.Read(w.buff)
+	w.buff = w.buff[:w.chunk.RealSize]
 	return
 }
 
-// readOverflowInBuff reads overflowScanSize chunks until the next
+// readOverflowInBuff reads chunks of size overflowScanSize until the next
 // linebreak has been found.
-func (worker *Worker) readOverflowInBuff() error {
+func (w *Worker) readOverflowInBuff() error {
 	var (
 		buffHead = 0
-		buffSize = len(worker.overflowBuff)
+		buffSize = len(w.overflowBuff)
 	)
 
 	for {
-		scanBuff := worker.overflowBuff[buffHead:buffSize]
+		scanBuff := w.overflowBuff[buffHead:buffSize]
 
-		if _, err := worker.handle.Read(scanBuff); err != nil {
+		if _, err := w.handle.Read(scanBuff); err != nil {
 			return err
 		}
 
 		i := bytes.IndexByte(scanBuff, '\n')
 		if i > 0 {
-			worker.overflowBuff = worker.overflowBuff[:buffHead+i]
+			w.overflowBuff = w.overflowBuff[:buffHead+i]
 			break
 		}
 
@@ -175,8 +167,8 @@ func (worker *Worker) readOverflowInBuff() error {
 		buffSize += buffSize
 		newBuff := make([]byte, buffSize)
 
-		copy(newBuff, worker.overflowBuff)
-		worker.overflowBuff = newBuff
+		copy(newBuff, w.overflowBuff)
+		w.overflowBuff = newBuff
 	}
 
 	return nil
@@ -184,7 +176,7 @@ func (worker *Worker) readOverflowInBuff() error {
 
 // processBuff converts all the json content in Worker.buff and
 // Worker.overflowBuff to csv and safes it into Worker.outBuff
-func (worker *Worker) processBuff() error {
+func (w *Worker) processBuff() error {
 	var (
 		line            []byte
 		noLinebreakLeft bool
@@ -192,48 +184,45 @@ func (worker *Worker) processBuff() error {
 	)
 
 	for {
-		relativeIndex = bytes.IndexByte(worker.buff[worker.buffHead:], '\n')
+		relativeIndex = bytes.IndexByte(w.buff[w.buffHead:], '\n')
 		noLinebreakLeft = relativeIndex == -1
 
 		if noLinebreakLeft {
-			if !worker.chunk.partialLastLine {
-				return ErrNotPartialLastLineButIncompleteLine
-			}
 
-			remainingBuff := worker.buff[worker.buffHead:]
-			line = make([]byte, len(remainingBuff)+len(worker.overflowBuff))
+			remainingBuff := w.buff[w.buffHead:]
+			line = make([]byte, len(remainingBuff)+len(w.overflowBuff))
 			copy(line[:len(remainingBuff)], remainingBuff)
-			copy(line[len(remainingBuff):], worker.overflowBuff)
+			copy(line[len(remainingBuff):], w.overflowBuff)
 
-			convertedLine, err := worker.lineProcessor.Process(line)
+			convertedLine, err := w.lineProcessor.Process(line)
 			if err != nil {
 				return fmt.Errorf("processBuff error: %w", err)
 			}
 
-			worker.outBuff = worker.outBuff[:worker.outBuffHead+len(convertedLine)]
-			worker.chunk.LinesProcessed++
+			w.outBuff = w.outBuff[:w.outBuffHead+len(convertedLine)]
+			w.chunk.LinesProcessed++
 
 			if len(convertedLine) != 0 {
-				copy(worker.outBuff[worker.outBuffHead:], convertedLine)
+				copy(w.outBuff[w.outBuffHead:], convertedLine)
 			}
 
 			break
 		}
 
-		convertedLine, err := worker.lineProcessor.Process(worker.buff[worker.buffHead : worker.buffHead+relativeIndex])
+		convertedLine, err := w.lineProcessor.Process(w.buff[w.buffHead : w.buffHead+relativeIndex])
 		if err != nil {
 			return fmt.Errorf("processBuff error: %w", err)
 		}
 
 		if len(convertedLine) != 0 {
-			copy(worker.outBuff[worker.outBuffHead:], convertedLine)
+			copy(w.outBuff[w.outBuffHead:], convertedLine)
 		}
 
-		worker.outBuffHead += len(convertedLine)
-		worker.buffHead += relativeIndex + 1
-		worker.chunk.LinesProcessed++
+		w.outBuffHead += len(convertedLine)
+		w.buffHead += relativeIndex + 1
+		w.chunk.LinesProcessed++
 
-		if worker.buffHead == worker.chunk.RealSize {
+		if w.buffHead == w.chunk.RealSize {
 			break
 		}
 	}
@@ -241,7 +230,7 @@ func (worker *Worker) processBuff() error {
 	return nil
 }
 
-func (worker *Worker) writeOutBuff() (err error) {
-	_, err = worker.chunk.out.Write(worker.outBuff)
+func (w *Worker) writeOutBuff() (err error) {
+	_, err = w.chunk.out.Write(w.outBuff)
 	return
 }
