@@ -1,4 +1,4 @@
-module github.com/fgehrlicher/conveyor/example/rune_counter
+module github.com/fgehrlicher/conveyor/example/redact_emails
 
 go 1.15
 

@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	chunks, _ := conveyor.GetChunks("./data.txt", 512, os.Stdout)
+	chunks, _ := conveyor.GetChunks("../data.txt", 512, os.Stdout)
 
 	rc := NewRuneCounter([]rune{'a', 'b', 'c', ' ', '.'})
 
