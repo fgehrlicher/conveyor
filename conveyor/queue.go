@@ -16,6 +16,12 @@ type Queue struct {
 	result chan ChunkResult
 }
 
+type QueueResult struct {
+	Results      []ChunkResult
+	Lines        int64
+	FailedChunks int
+}
+
 func NewQueue(chunks []Chunk, workers int, lineProcessor LineProcessor) *Queue {
 	tasks := make(chan Chunk, len(chunks))
 	for _, chunk := range chunks {
@@ -28,12 +34,12 @@ func NewQueue(chunks []Chunk, workers int, lineProcessor LineProcessor) *Queue {
 		tasks:         tasks,
 		result:        make(chan ChunkResult, workers),
 		chunkCount:    len(chunks),
-		chunkSize:     chunks[0].Size,
+		chunkSize:     int64(chunks[0].Size),
 		lineProcessor: lineProcessor,
 	}
 }
 
-func (queue *Queue) Work() []ChunkResult {
+func (queue *Queue) Work() QueueResult {
 	var (
 		wg      sync.WaitGroup
 		results = make([]ChunkResult, 0, queue.chunkCount)
@@ -96,5 +102,21 @@ func (queue *Queue) Work() []ChunkResult {
 	wg.Wait()
 	quit <- 0
 
-	return results
+	var (
+		totalLines   int64
+		failedChunks int
+	)
+
+	for _, result := range results {
+		totalLines += int64(result.Chunk.LinesProcessed)
+		if result.Err != nil {
+			failedChunks++
+		}
+	}
+
+	return QueueResult{
+		Results:      results,
+		Lines:        totalLines,
+		FailedChunks: failedChunks,
+	}
 }

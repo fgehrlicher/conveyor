@@ -6,15 +6,17 @@ import (
 )
 
 type Chunk struct {
-	Id             int
-	File           string
-	Offset         int64
-	Size           int64
-	RealOffset     int64
-	RealSize       int
-	LinesProcessed int
+	Id     int
+	File   string
+	Offset int64
+	Size   int
 
-	out              io.Writer
+	RealSize       int
+	RealOffset     int64
+	LinesProcessed int
+	EOF            bool
+
+	out io.Writer
 }
 
 type ChunkResult struct {
@@ -26,7 +28,7 @@ func (c ChunkResult) Ok() bool {
 	return c.Err == nil
 }
 
-func GetChunks(filePath string, chunkSize int64, out io.Writer) ([]Chunk, error) {
+func GetChunks(filePath string, chunkSize int, out io.Writer) ([]Chunk, error) {
 	info, err := os.Stat(filePath)
 	if err != nil {
 		return nil, err
@@ -48,7 +50,7 @@ func GetChunks(filePath string, chunkSize int64, out io.Writer) ([]Chunk, error)
 			out:        out,
 		})
 
-		currentOffset += chunkSize
+		currentOffset += int64(chunkSize)
 		currentChunk++
 	}
 

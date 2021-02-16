@@ -10,13 +10,18 @@ import (
 )
 
 func main() {
-	chunks, _ := conveyor.GetChunks("./data.txt", 512, os.Stdout)
+	chunks, _ := conveyor.GetChunks("./data.txt", 100000, os.Stdout)
 
 	rc := NewRuneCounter([]rune{'a', 'b', 'c', ' ', '.'})
 
-	conveyor.NewQueue(chunks, 4, rc).Work()
+	result := conveyor.NewQueue(chunks, 4, rc).Work()
 
-	println(rc.Result())
+	fmt.Printf(
+		"processed %d lines.\n%d chunks failed.\n%s",
+		result.Lines,
+		result.FailedChunks,
+		rc.Result(),
+	)
 }
 
 type RuneCounter struct {
