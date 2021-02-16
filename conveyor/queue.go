@@ -82,7 +82,7 @@ func (queue *Queue) Work() QueueResult {
 					)
 				} else {
 					fmt.Printf(
-						"[%*d/%d] error in chunk :%s\n",
+						"[%*d/%d] %s\n",
 						len(strconv.Itoa(queue.chunkCount)),
 						result.Chunk.Id,
 						queue.chunkCount,
