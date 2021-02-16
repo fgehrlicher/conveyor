@@ -1,8 +1,10 @@
 package conveyor
 
 import (
+	"fmt"
 	"io"
 	"os"
+	"strconv"
 )
 
 type Chunk struct {
@@ -55,4 +57,40 @@ func GetChunks(filePath string, chunkSize int, out io.Writer) ([]Chunk, error) {
 	}
 
 	return chunks, err
+}
+
+func logChunkResult(queue *Queue, result ChunkResult, chunksProcessed int) {
+	percent := float32(chunksProcessed) / float32(queue.chunkCount) * 100
+
+	if result.Err == nil {
+		percentPadding := ""
+		if percent < 10 {
+			percentPadding = "  "
+		}
+		if percent >= 10 && percent != 100 {
+			percentPadding = " "
+		}
+
+		queue.Logger.Println(
+			fmt.Sprintf(
+				"[%*d/%d] %s%.2f %% done. lines in chunk: %d",
+				len(strconv.Itoa(queue.chunkCount)),
+				result.Chunk.Id,
+				queue.chunkCount,
+				percentPadding,
+				percent,
+				result.Chunk.LinesProcessed,
+			),
+		)
+	} else {
+		queue.ErrLogger.Println(
+			fmt.Printf(
+				"[%*d/%d] %s",
+				len(strconv.Itoa(queue.chunkCount)),
+				result.Chunk.Id,
+				queue.chunkCount,
+				result.Err,
+			),
+		)
+	}
 }

@@ -1,19 +1,29 @@
 package conveyor
 
 import (
-	"fmt"
-	"strconv"
+	"log"
+	"os"
 	"sync"
 )
+
+type ChunkResultLogger func(queue *Queue, result ChunkResult, chunksProcessed int)
 
 type Queue struct {
 	workers       int
 	chunkCount    int
 	chunkSize     int64
 	lineProcessor LineProcessor
+	*QueueOpts
 
 	tasks  chan Chunk
 	result chan ChunkResult
+}
+
+type QueueOpts struct {
+	ChunkResultLogger    ChunkResultLogger
+	Logger               *log.Logger
+	ErrLogger            *log.Logger
+	OverflowScanBuffSize int
 }
 
 type QueueResult struct {
@@ -22,12 +32,35 @@ type QueueResult struct {
 	FailedChunks int
 }
 
-func NewQueue(chunks []Chunk, workers int, lineProcessor LineProcessor) *Queue {
+func NewQueue(chunks []Chunk, workers int, lineProcessor LineProcessor, opts ...*QueueOpts) *Queue {
 	tasks := make(chan Chunk, len(chunks))
 	for _, chunk := range chunks {
 		tasks <- chunk
 	}
 	close(tasks)
+
+	var opt *QueueOpts
+	if len(opts) > 0 && opts[0] != nil {
+		opt = opts[0]
+	} else {
+		opt = &QueueOpts{}
+	}
+
+	if opt.ChunkResultLogger == nil {
+		opt.ChunkResultLogger = logChunkResult
+	}
+
+	if opt.OverflowScanBuffSize == 0 {
+		opt.OverflowScanBuffSize = defaultOverflowScanSize
+	}
+
+	if opt.Logger == nil {
+		opt.Logger = log.New(os.Stdout, "", log.Ltime)
+	}
+
+	if opt.ErrLogger == nil {
+		opt.ErrLogger = log.New(os.Stderr, "", log.Ltime)
+	}
 
 	return &Queue{
 		workers:       workers,
@@ -36,6 +69,7 @@ func NewQueue(chunks []Chunk, workers int, lineProcessor LineProcessor) *Queue {
 		chunkCount:    len(chunks),
 		chunkSize:     int64(chunks[0].Size),
 		lineProcessor: lineProcessor,
+		QueueOpts:     opt,
 	}
 }
 
@@ -48,49 +82,28 @@ func (queue *Queue) Work() QueueResult {
 	wg.Add(queue.workers + queue.chunkCount)
 
 	for i := 0; i < queue.workers; i++ {
-		go NewWorker(queue.tasks, queue.result, queue.lineProcessor, queue.chunkSize, 1024, &wg).Work()
+		go NewWorker(
+			queue.tasks,
+			queue.result,
+			queue.lineProcessor,
+			queue.chunkSize,
+			queue.OverflowScanBuffSize,
+			&wg,
+		).Work()
 	}
 
 	quit := make(chan int)
 	go func() {
 		chunksProcessed := 0
-		var percent float32
 
 		for {
 			select {
 			case result := <-queue.result:
 				chunksProcessed++
-				percent = float32(chunksProcessed) / float32(queue.chunkCount) * 100
 
-				if result.Err == nil {
-					percentPadding := ""
-					if percent < 10 {
-						percentPadding = "  "
-					}
-					if percent >= 10 && percent != 100 {
-						percentPadding = " "
-					}
+				queue.ChunkResultLogger(queue, result, chunksProcessed)
 
-					fmt.Printf(
-						"[%*d/%d] %s%.2f %% done. lines in chunk: %d \n",
-						len(strconv.Itoa(queue.chunkCount)),
-						result.Chunk.Id,
-						queue.chunkCount,
-						percentPadding,
-						percent,
-						result.Chunk.LinesProcessed,
-					)
-				} else {
-					fmt.Printf(
-						"[%*d/%d] %s\n",
-						len(strconv.Itoa(queue.chunkCount)),
-						result.Chunk.Id,
-						queue.chunkCount,
-						result.Err,
-					)
-				}
 				results = append(results, result)
-
 				wg.Done()
 
 			case <-quit:
@@ -109,7 +122,7 @@ func (queue *Queue) Work() QueueResult {
 
 	for _, result := range results {
 		totalLines += int64(result.Chunk.LinesProcessed)
-		if result.Err != nil {
+		if !result.Ok() {
 			failedChunks++
 		}
 	}

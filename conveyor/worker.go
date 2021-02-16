@@ -9,6 +9,9 @@ import (
 	"sync"
 )
 
+// Chosen by fair dice roll.
+const defaultOverflowScanSize = 1024
+
 var (
 	ErrNoLinebreakInChunk = errors.New("no linebreak found in buff")
 )
@@ -33,7 +36,7 @@ type Worker struct {
 }
 
 // NewWorker returns a new Worker
-func NewWorker(tasks chan Chunk, result chan ChunkResult, lineProcessor LineProcessor, chunkSize, overflowScanSize int64, waitGroup *sync.WaitGroup) *Worker {
+func NewWorker(tasks chan Chunk, result chan ChunkResult, lineProcessor LineProcessor, chunkSize int64, overflowScanSize int, waitGroup *sync.WaitGroup) *Worker {
 	return &Worker{
 		TasksChan:     tasks,
 		resultChan:    result,
@@ -152,7 +155,7 @@ func (w *Worker) readChunkInBuff() (err error) {
 	return
 }
 
-// readOverflowInBuff reads chunks of size overflowScanSize until the next
+// readOverflowInBuff reads chunks of size defaultOverflowScanSize until the next
 // linebreak has been found.
 func (w *Worker) readOverflowInBuff() error {
 	buffSize := len(w.overflowBuff)
@@ -198,7 +201,7 @@ func (w *Worker) processBuff() error {
 			break
 		}
 
-		if err := w.processLine(relativeIndex); err != nil {
+		if err := w.processLine(relativeIndex +1); err != nil {
 			return fmt.Errorf("error while processing line of chunk: %w", err)
 		}
 
@@ -216,12 +219,11 @@ func (w *Worker) processLine(relativeIndex int) error {
 		return err
 	}
 
-	if len(convertedLine) != 0 {
-		copy(w.outBuff[w.outBuffHead:], convertedLine)
+	if err := w.addToOutBuff(convertedLine); err != nil {
+		return err
 	}
 
-	w.outBuffHead += len(convertedLine)
-	w.buffHead += relativeIndex + 1
+	w.buffHead += relativeIndex
 	w.chunk.LinesProcessed++
 	return nil
 }
@@ -237,13 +239,27 @@ func (w *Worker) processLastLine() error {
 		return err
 	}
 
-	w.outBuff = w.outBuff[:w.outBuffHead+len(convertedLine)]
-
-	if len(convertedLine) != 0 {
-		copy(w.outBuff[w.outBuffHead:], convertedLine)
+	if err := w.addToOutBuff(convertedLine); err != nil {
+		return err
 	}
 
 	w.chunk.LinesProcessed++
+	return nil
+}
+
+func (w *Worker) addToOutBuff(b []byte) error {
+	if len(b) == 0 {
+		return nil
+	}
+
+	if w.outBuffHead+len(b) > len(w.outBuff) {
+		w.outBuff = append(w.outBuff[:w.outBuffHead], b...)
+		w.outBuff = w.outBuff[:cap(w.outBuff)]
+	} else {
+		copy(w.outBuff[w.outBuffHead:], b)
+	}
+
+	w.outBuffHead += len(b)
 	return nil
 }
 
