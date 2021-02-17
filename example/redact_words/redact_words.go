@@ -15,7 +15,14 @@ func main() {
 		log.Fatal(err)
 	}
 
-	chunks, err := conveyor.GetChunks("../data.txt", 512, resultFile)
+	chunks, err := conveyor.GetChunks(
+		"../data.txt",
+		512,
+		conveyor.NewConcurrentWriter(
+			resultFile,
+			true,
+		),
+	)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -32,6 +39,9 @@ func main() {
 
 var wordsToRedact = []string{
 	"testmail@test.com",
+	"test@mail.de",
+	"ullamcorper",
+	"Lorem",
 }
 
 func Redact(line []byte) ([]byte, error) {
