@@ -2,7 +2,6 @@ package conveyor
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"strconv"
 )
@@ -18,7 +17,11 @@ type Chunk struct {
 	LinesProcessed int
 	EOF            bool
 
-	out io.Writer
+	out ChunkWriter
+}
+
+type ChunkWriter interface {
+	WriteBuff(chunk *Chunk, buff []byte) error
 }
 
 type ChunkResult struct {
@@ -26,11 +29,11 @@ type ChunkResult struct {
 	Err   error
 }
 
-func (c ChunkResult) Ok() bool {
+func (c *ChunkResult) Ok() bool {
 	return c.Err == nil
 }
 
-func GetChunks(filePath string, chunkSize int, out io.Writer) ([]Chunk, error) {
+func GetChunks(filePath string, chunkSize int, out ChunkWriter) ([]Chunk, error) {
 	info, err := os.Stat(filePath)
 	if err != nil {
 		return nil, err
@@ -73,7 +76,7 @@ func logChunkResult(queue *Queue, result ChunkResult, chunksProcessed int) {
 
 		queue.Logger.Println(
 			fmt.Sprintf(
-				"[%*d/%d] %s%.2f %% done. lines in chunk: %d",
+				"[%*d/%d] %s%.2f %% done. lines: %d",
 				len(strconv.Itoa(queue.chunkCount)),
 				result.Chunk.Id,
 				queue.chunkCount,

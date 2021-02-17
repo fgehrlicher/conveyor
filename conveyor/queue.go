@@ -55,11 +55,11 @@ func NewQueue(chunks []Chunk, workers int, lineProcessor LineProcessor, opts ...
 	}
 
 	if opt.Logger == nil {
-		opt.Logger = log.New(os.Stdout, "", log.Ltime)
+		opt.Logger = log.New(os.Stdout, "", log.LstdFlags)
 	}
 
 	if opt.ErrLogger == nil {
-		opt.ErrLogger = log.New(os.Stderr, "", log.Ltime)
+		opt.ErrLogger = log.New(os.Stderr, "", log.LstdFlags)
 	}
 
 	return &Queue{

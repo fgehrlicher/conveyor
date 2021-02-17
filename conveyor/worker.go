@@ -36,7 +36,14 @@ type Worker struct {
 }
 
 // NewWorker returns a new Worker
-func NewWorker(tasks chan Chunk, result chan ChunkResult, lineProcessor LineProcessor, chunkSize int64, overflowScanSize int, waitGroup *sync.WaitGroup) *Worker {
+func NewWorker(
+	tasks chan Chunk,
+	result chan ChunkResult,
+	lineProcessor LineProcessor,
+	chunkSize int64,
+	overflowScanSize int,
+	waitGroup *sync.WaitGroup,
+) *Worker {
 	return &Worker{
 		TasksChan:     tasks,
 		resultChan:    result,
@@ -108,6 +115,9 @@ func (w *Worker) prepareBuff() error {
 		w.buffHead += i + 1
 		w.chunk.RealOffset = w.chunk.Offset + int64(i)
 	}
+
+	w.outBuff[0] = '\n'
+	w.outBuffHead = 1
 
 	if !w.chunk.EOF {
 		err := w.readOverflowInBuff()
@@ -201,7 +211,7 @@ func (w *Worker) processBuff() error {
 			break
 		}
 
-		if err := w.processLine(relativeIndex +1); err != nil {
+		if err := w.processLine(relativeIndex + 1); err != nil {
 			return fmt.Errorf("error while processing line of chunk: %w", err)
 		}
 
@@ -214,7 +224,8 @@ func (w *Worker) processBuff() error {
 }
 
 func (w *Worker) processLine(relativeIndex int) error {
-	convertedLine, err := w.lineProcessor.Process(w.buff[w.buffHead : w.buffHead+relativeIndex])
+	line := w.buff[w.buffHead : w.buffHead+relativeIndex]
+	convertedLine, err := w.lineProcessor.Process(line)
 	if err != nil {
 		return err
 	}
@@ -264,8 +275,9 @@ func (w *Worker) addToOutBuff(b []byte) error {
 }
 
 func (w *Worker) writeOutBuff() (err error) {
-	if w.outBuffHead > 0 {
-		_, err = w.chunk.out.Write(w.outBuff[:w.outBuffHead])
+	if w.outBuffHead > 0 && w.chunk.out != nil {
+		outBuff := w.outBuff[:w.outBuffHead]
+		err = w.chunk.out.WriteBuff(w.chunk, outBuff)
 	}
 
 	return
