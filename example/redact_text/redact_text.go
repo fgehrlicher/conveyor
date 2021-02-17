@@ -13,6 +13,7 @@ func main() {
 	checkError(err)
 
 	concurrentWriter := conveyor.NewConcurrentWriter(resultFile, true)
+
 	chunks, err := conveyor.GetChunks("../data.txt", 512, concurrentWriter)
 	checkError(err)
 
@@ -28,7 +29,7 @@ var wordsToRedact = []string{
 	"Lorem",
 }
 
-func Redact(line []byte) ([]byte, error) {
+func Redact(line []byte, metadata conveyor.LineMetadata) ([]byte, error) {
 	result := string(line)
 
 	for _, word := range wordsToRedact {

@@ -222,7 +222,13 @@ func (w *Worker) processBuff() error {
 
 func (w *Worker) processLine(relativeIndex int) error {
 	line := w.buff[w.buffHead : w.buffHead+relativeIndex]
-	convertedLine, err := w.lineProcessor.Process(line)
+	convertedLine, err := w.lineProcessor.Process(
+		line, LineMetadata{
+			line:  w.chunk.LinesProcessed + 1,
+			chunk: w.chunk,
+		},
+	)
+
 	if err != nil {
 		return err
 	}
@@ -242,7 +248,14 @@ func (w *Worker) processLastLine() error {
 	copy(line[:len(remainingBuff)], remainingBuff)
 	copy(line[len(remainingBuff):], w.overflowBuff)
 
-	convertedLine, err := w.lineProcessor.Process(line)
+	convertedLine, err := w.lineProcessor.Process(
+		line,
+		LineMetadata{
+			line:  w.chunk.LinesProcessed + 1,
+			chunk: w.chunk,
+		},
+	)
+
 	if err != nil {
 		return err
 	}

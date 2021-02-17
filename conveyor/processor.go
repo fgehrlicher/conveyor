@@ -1,11 +1,16 @@
 package conveyor
 
-type LineProcessor interface  {
-	Process(line []byte) (out []byte, err error)
+type LineProcessor interface {
+	Process(line []byte, metadata LineMetadata) (out []byte, err error)
 }
 
-type LineProcessorFunc func([]byte) ([]byte, error)
+type LineMetadata struct {
+	line  int
+	chunk *Chunk
+}
 
-func (f LineProcessorFunc) Process(line []byte) (out []byte, err error) {
-	return f(line)
+type LineProcessorFunc func([]byte, LineMetadata) ([]byte, error)
+
+func (f LineProcessorFunc) Process(line []byte, metadata LineMetadata) (out []byte, err error) {
+	return f(line, metadata)
 }
