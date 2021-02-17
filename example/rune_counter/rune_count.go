@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"strings"
 	"sync"
 
@@ -9,7 +10,8 @@ import (
 )
 
 func main() {
-	chunks, _ := conveyor.GetChunks("../data.txt", 512, nil)
+	chunks, err := conveyor.GetChunks("../data.txt", 512, nil)
+	checkError(err)
 
 	rc := NewRuneCounter([]rune{'a', 'b', 'c', ' ', '.'})
 
@@ -62,4 +64,10 @@ func (c *RuneCounter) Result() string {
 	}
 
 	return result
+}
+
+func checkError(err error) {
+	if err != nil {
+		log.Fatal(err)
+	}
 }

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -11,30 +10,15 @@ import (
 
 func main() {
 	resultFile, err := os.Create("../redacted_data.txt")
-	if err != nil {
-		log.Fatal(err)
-	}
+	checkError(err)
 
-	chunks, err := conveyor.GetChunks(
-		"../data.txt",
-		512,
-		conveyor.NewConcurrentWriter(
-			resultFile,
-			true,
-		),
-	)
-	if err != nil {
-		log.Fatal(err)
-	}
+	concurrentWriter := conveyor.NewConcurrentWriter(resultFile, true)
+	chunks, err := conveyor.GetChunks("../data.txt", 512, concurrentWriter)
+	checkError(err)
 
-	result := conveyor.NewQueue(
-		chunks,
-		4,
-		conveyor.LineProcessorFunc(Redact),
-	).Work()
+	result := conveyor.NewQueue(chunks, 4, conveyor.LineProcessorFunc(Redact)).Work()
 
-	log.Println(fmt.Sprintf("processed %d lines", result.Lines),
-	)
+	log.Printf("processed %d lines", result.Lines)
 }
 
 var wordsToRedact = []string{
@@ -52,4 +36,10 @@ func Redact(line []byte) ([]byte, error) {
 	}
 
 	return []byte(result), nil
+}
+
+func checkError(err error) {
+	if err != nil {
+		log.Fatal(err)
+	}
 }
