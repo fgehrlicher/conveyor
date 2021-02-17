@@ -116,9 +116,6 @@ func (w *Worker) prepareBuff() error {
 		w.chunk.RealOffset = w.chunk.Offset + int64(i)
 	}
 
-	w.outBuff[0] = '\n'
-	w.outBuffHead = 1
-
 	if !w.chunk.EOF {
 		err := w.readOverflowInBuff()
 		if err != nil {
@@ -277,7 +274,7 @@ func (w *Worker) addToOutBuff(b []byte) error {
 func (w *Worker) writeOutBuff() (err error) {
 	if w.outBuffHead > 0 && w.chunk.out != nil {
 		outBuff := w.outBuff[:w.outBuffHead]
-		err = w.chunk.out.WriteBuff(w.chunk, outBuff)
+		err = w.chunk.out.Write(w.chunk, outBuff)
 	}
 
 	return

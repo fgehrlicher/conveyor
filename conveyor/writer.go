@@ -6,10 +6,13 @@ import (
 )
 
 type ConcurrentWriter struct {
-	keepOrder        bool
-	lastChunkWritten int
 	firstWrite       bool
 	handle           io.Writer
+
+	keepOrder        bool
+	lastChunkWritten int
+	cache            map[int][]byte
+
 	sync.Mutex
 }
 
@@ -18,21 +21,61 @@ func NewConcurrentWriter(writer io.Writer, keepOrder bool) *ConcurrentWriter {
 		keepOrder:  keepOrder,
 		handle:     writer,
 		firstWrite: true,
+		cache:      make(map[int][]byte),
 	}
 }
 
-func (c *ConcurrentWriter) WriteBuff(chunk *Chunk, buff []byte) error {
+func (c *ConcurrentWriter) Write(chunk *Chunk, buff []byte) error {
 	c.Lock()
 	defer c.Unlock()
 
-	var err error
-
-	if c.firstWrite {
-		_, err = c.handle.Write(buff[1:len(buff)-1])
-		c.firstWrite = false
-	} else {
-		_, err = c.handle.Write(buff)
+	if !c.keepOrder {
+		return c.writeBuff(buff)
 	}
 
-	return err
+	c.addToCache(chunk.Id, buff)
+	return c.writeCache()
+}
+
+func (c *ConcurrentWriter) addToCache(id int, buff []byte) {
+	c.cache[id] = make([]byte, len(buff))
+	copy(c.cache[id], buff)
+}
+
+func (c *ConcurrentWriter) writeBuff(buff []byte) error {
+	if len(buff) == 0 {
+		return nil
+	}
+
+	if !c.firstWrite {
+		if _, err := c.handle.Write([]byte{'\n'}); err != nil {
+			return err
+		}
+
+	} else {
+		c.firstWrite = false
+	}
+
+	if _, err := c.handle.Write(buff); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *ConcurrentWriter) writeCache() error {
+	for {
+		currentIndex := c.lastChunkWritten+1
+		buff, set := c.cache[currentIndex]
+		if !set {
+			return nil
+		}
+
+		if err := c.writeBuff(buff); err != nil {
+			return err
+		}
+
+		delete(c.cache, currentIndex)
+		c.lastChunkWritten++
+	}
 }

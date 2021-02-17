@@ -21,7 +21,7 @@ type Chunk struct {
 }
 
 type ChunkWriter interface {
-	WriteBuff(chunk *Chunk, buff []byte) error
+	Write(chunk *Chunk, buff []byte) error
 }
 
 type ChunkResult struct {
