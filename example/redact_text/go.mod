@@ -1,4 +1,4 @@
-module github.com/fgehrlicher/conveyor/example/redact_words
+module github.com/fgehrlicher/conveyor/example/redact_text
 
 go 1.15
 
