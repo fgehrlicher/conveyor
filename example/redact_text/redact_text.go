@@ -8,6 +8,13 @@ import (
 	"github.com/fgehrlicher/conveyor/conveyor"
 )
 
+var textToRedact = []string{
+	"testmail@test.com",
+	"test@mail.de",
+	"ullamcorper",
+	"Lorem",
+}
+
 func main() {
 	resultFile, err := os.Create("../redacted_data.txt")
 	checkError(err)
@@ -22,17 +29,10 @@ func main() {
 	log.Printf("processed %d lines", result.Lines)
 }
 
-var wordsToRedact = []string{
-	"testmail@test.com",
-	"test@mail.de",
-	"ullamcorper",
-	"Lorem",
-}
-
 func Redact(line []byte, metadata conveyor.LineMetadata) ([]byte, error) {
 	result := string(line)
 
-	for _, word := range wordsToRedact {
+	for _, word := range textToRedact {
 		result = strings.ReplaceAll(result, word, strings.Repeat("x", len(word)))
 	}
 
