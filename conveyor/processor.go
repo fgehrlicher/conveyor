@@ -5,8 +5,8 @@ type LineProcessor interface {
 }
 
 type LineMetadata struct {
-	line  int
-	chunk *Chunk
+	Line  int
+	Chunk *Chunk
 }
 
 type LineProcessorFunc func([]byte, LineMetadata) ([]byte, error)

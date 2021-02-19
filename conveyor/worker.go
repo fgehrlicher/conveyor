@@ -84,7 +84,7 @@ func (w *Worker) Process() error {
 
 	err = w.readChunkInBuff()
 	if err != nil {
-		return fmt.Errorf("error while reading chunk in buff: %w", err)
+		return fmt.Errorf("error while reading Chunk in buff: %w", err)
 	}
 
 	err = w.prepareBuff()
@@ -202,14 +202,14 @@ func (w *Worker) processBuff() error {
 
 		if relativeIndex == -1 {
 			if err := w.processLastLine(); err != nil {
-				return fmt.Errorf("error while processing last line of chunk: %w", err)
+				return fmt.Errorf("error while processing last Line of Chunk: %w", err)
 			}
 
 			break
 		}
 
 		if err := w.processLine(relativeIndex + 1); err != nil {
-			return fmt.Errorf("error while processing line of chunk: %w", err)
+			return fmt.Errorf("error while processing Line of Chunk: %w", err)
 		}
 
 		if w.buffHead == w.chunk.RealSize {
@@ -224,8 +224,8 @@ func (w *Worker) processLine(relativeIndex int) error {
 	line := w.buff[w.buffHead : w.buffHead+relativeIndex]
 	convertedLine, err := w.lineProcessor.Process(
 		line, LineMetadata{
-			line:  w.chunk.LinesProcessed + 1,
-			chunk: w.chunk,
+			Line:  w.chunk.LinesProcessed + 1,
+			Chunk: w.chunk,
 		},
 	)
 
@@ -251,8 +251,8 @@ func (w *Worker) processLastLine() error {
 	convertedLine, err := w.lineProcessor.Process(
 		line,
 		LineMetadata{
-			line:  w.chunk.LinesProcessed + 1,
-			chunk: w.chunk,
+			Line:  w.chunk.LinesProcessed + 1,
+			Chunk: w.chunk,
 		},
 	)
 
