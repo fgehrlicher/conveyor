@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/fgehrlicher/conveyor/conveyor"
+	"github.com/fgehrlicher/conveyor"
 )
 
 var textToRedact = []string{
