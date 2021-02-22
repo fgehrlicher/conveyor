@@ -16,12 +16,12 @@ var textToRedact = []string{
 }
 
 func main() {
-	resultFile, err := os.Create("../redacted_data.txt")
+	resultFile, err := os.Create("redacted_data.txt")
 	checkError(err)
 
 	concurrentWriter := conveyor.NewConcurrentWriter(resultFile, true)
 
-	chunks, err := conveyor.GetChunks("../data.txt", 512, concurrentWriter)
+	chunks, err := conveyor.GetChunks("../../testdata/data.txt", 512, concurrentWriter)
 	checkError(err)
 
 	result := conveyor.NewQueue(chunks, 4, conveyor.LineProcessorFunc(Redact)).Work()
