@@ -72,7 +72,7 @@ func TestWriteChunksNoOrder(t *testing.T) {
 	assertion.NoError(writer.Write(&conveyor.Chunk{Id: 1}, testChunks[1]))
 	assertion.NoError(writer.Write(&conveyor.Chunk{Id: 2}, testChunks[2]))
 
-	output := string(buff.Bytes())
+	output := buff.String()
 	for i := 1; i <= 3; i++ {
 		chunk := string(testChunks[i])
 		assertion.Containsf(output, chunk, "Buff doesnt contain chunk %d", i)
@@ -88,7 +88,7 @@ func TestWriteChunksInOrder(t *testing.T) {
 	assertion.NoError(writer.Write(&conveyor.Chunk{Id: 2}, testChunks[2]))
 	assertion.NoError(writer.Write(&conveyor.Chunk{Id: 1}, testChunks[1]))
 
-	output := string(buff.Bytes())
+	output := buff.String()
 
 	var expectedOutput string
 	for i := 1; i <= 3; i++ {

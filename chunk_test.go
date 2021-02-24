@@ -121,12 +121,12 @@ func TestLogChunkResult(t *testing.T) {
 		conveyor.LogChunkResult(queue, test.ChunkResult, test.currentChunkCount)
 
 		if test.ExpectedOutput != "" {
-			loggerOut := string(loggerOutput.Bytes())
+			loggerOut := loggerOutput.String()
 			assertion.Equal(test.ExpectedOutput, loggerOut)
 		}
 
 		if test.ExpectedErrorOutput != "" {
-			errLoggerOut := string(errorLoggerOutput.Bytes())
+			errLoggerOut := errorLoggerOutput.Bytes()
 			assertion.Equal(test.ExpectedErrorOutput, errLoggerOut)
 		}
 

@@ -133,6 +133,9 @@ func (w *Worker) prepareBuff() error {
 func (w *Worker) prepareFileHandles() (err error) {
 	if w.handle == nil || w.handle.Name() != w.chunk.File {
 		w.handle, err = os.Open(w.chunk.File)
+		if err != nil {
+			return
+		}
 	}
 
 	_, err = w.handle.Seek(w.chunk.Offset, io.SeekStart)
