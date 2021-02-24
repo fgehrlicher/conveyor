@@ -6,7 +6,7 @@ import (
 )
 
 type ConcurrentWriter struct {
-	handle           io.Writer
+	handle io.Writer
 
 	keepOrder        bool
 	lastChunkWritten int
@@ -17,9 +17,9 @@ type ConcurrentWriter struct {
 
 func NewConcurrentWriter(writer io.Writer, keepOrder bool) *ConcurrentWriter {
 	return &ConcurrentWriter{
-		keepOrder:  keepOrder,
-		handle:     writer,
-		cache:      make(map[int][]byte),
+		keepOrder: keepOrder,
+		handle:    writer,
+		cache:     make(map[int][]byte),
 	}
 }
 
@@ -42,7 +42,7 @@ func (c *ConcurrentWriter) addToCache(id int, buff []byte) {
 
 func (c *ConcurrentWriter) writeCache() error {
 	for {
-		currentIndex := c.lastChunkWritten+1
+		currentIndex := c.lastChunkWritten + 1
 		buff, set := c.cache[currentIndex]
 		if !set {
 			return nil

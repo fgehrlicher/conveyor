@@ -12,7 +12,6 @@ func TestLineProcessorFunc(t *testing.T) {
 		return bytes, nil
 	})
 
-
 	testData := []byte("123")
 	out, _ := testFunc.Process(testData, conveyor.LineMetadata{})
 	assert.Equal(t, testData, out)
