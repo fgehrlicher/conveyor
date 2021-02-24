@@ -86,7 +86,7 @@ func TestWorker(t *testing.T) {
 
 	assertion.Equal(expectedChunk, result.Chunk)
 
-	actualFile, err := ioutil.ReadFile("testdata/redacted_data.txt")
+	actualFile, err := ioutil.ReadFile("testdata/converted_data.txt")
 	assertion.NoError(err)
 
 	assertion.Equal(actualFile, out.Buff.Bytes())
