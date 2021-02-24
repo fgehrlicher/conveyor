@@ -3,10 +3,10 @@ package conveyor_test
 import (
 	"bytes"
 	"errors"
-	"github.com/stretchr/testify/assert"
 	"testing"
 
 	"github.com/fgehrlicher/conveyor"
+	"github.com/stretchr/testify/assert"
 )
 
 var testChunks = map[int][]byte{

@@ -6,7 +6,7 @@ import (
 	"sync"
 )
 
-type ChunkResultLogger func(queue *Queue, result ChunkResult, chunksProcessed int)
+type ChunkResultLogger func(queue *Queue, result ChunkResult, currentChunkNumber int)
 
 type Queue struct {
 	workers       int
@@ -47,7 +47,7 @@ func NewQueue(chunks []Chunk, workers int, lineProcessor LineProcessor, opts ...
 	}
 
 	if opt.ChunkResultLogger == nil {
-		opt.ChunkResultLogger = logChunkResult
+		opt.ChunkResultLogger = LogChunkResult
 	}
 
 	if opt.OverflowScanBuffSize == 0 {
@@ -94,14 +94,14 @@ func (queue *Queue) Work() QueueResult {
 
 	quit := make(chan int)
 	go func() {
-		chunksProcessed := 0
+		currentChunkNumber := 0
 
 		for {
 			select {
 			case result := <-queue.result:
-				chunksProcessed++
+				currentChunkNumber++
 
-				queue.ChunkResultLogger(queue, result, chunksProcessed)
+				queue.ChunkResultLogger(queue, result, currentChunkNumber)
 
 				results = append(results, result)
 				wg.Done()
