@@ -40,22 +40,6 @@ func (c *ConcurrentWriter) addToCache(id int, buff []byte) {
 	copy(c.cache[id], buff)
 }
 
-func (c *ConcurrentWriter) writeBuff(buff []byte) error {
-	if len(buff) == 0 {
-		return nil
-	}
-
-	if _, err := c.handle.Write(buff); err != nil {
-		return err
-	}
-
-	if _, err := c.handle.Write([]byte{'\n'}); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (c *ConcurrentWriter) writeCache() error {
 	for {
 		currentIndex := c.lastChunkWritten+1
@@ -71,4 +55,20 @@ func (c *ConcurrentWriter) writeCache() error {
 		delete(c.cache, currentIndex)
 		c.lastChunkWritten++
 	}
+}
+
+func (c *ConcurrentWriter) writeBuff(buff []byte) error {
+	if len(buff) == 0 {
+		return nil
+	}
+
+	if _, err := c.handle.Write(buff); err != nil {
+		return err
+	}
+
+	if _, err := c.handle.Write([]byte{'\n'}); err != nil {
+		return err
+	}
+
+	return nil
 }
