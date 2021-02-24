@@ -16,7 +16,7 @@ type Chunk struct {
 	LinesProcessed int
 	EOF            bool
 
-	out ChunkWriter
+	Out ChunkWriter
 }
 
 type ChunkWriter interface {
@@ -50,7 +50,7 @@ func GetChunks(filePath string, chunkSize int, out ChunkWriter) ([]Chunk, error)
 			Offset: currentOffset,
 			Size:   chunkSize,
 			File:   filePath,
-			out:    out,
+			Out:    out,
 		})
 
 		currentOffset += int64(chunkSize)

@@ -288,9 +288,9 @@ func (w *Worker) addToOutBuff(b []byte) error {
 }
 
 func (w *Worker) writeOutBuff() (err error) {
-	if w.outBuffHead > 0 && w.chunk.out != nil {
+	if w.outBuffHead > 0 && w.chunk.Out != nil {
 		outBuff := w.outBuff[:w.outBuffHead]
-		err = w.chunk.out.Write(w.chunk, outBuff)
+		err = w.chunk.Out.Write(w.chunk, outBuff)
 	}
 
 	return

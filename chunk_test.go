@@ -126,7 +126,7 @@ func TestLogChunkResult(t *testing.T) {
 		}
 
 		if test.ExpectedErrorOutput != "" {
-			errLoggerOut := errorLoggerOutput.Bytes()
+			errLoggerOut := errorLoggerOutput.String()
 			assertion.Equal(test.ExpectedErrorOutput, errLoggerOut)
 		}
 
