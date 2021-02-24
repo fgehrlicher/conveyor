@@ -6,7 +6,6 @@ import (
 )
 
 type ConcurrentWriter struct {
-	firstWrite       bool
 	handle           io.Writer
 
 	keepOrder        bool
@@ -20,7 +19,6 @@ func NewConcurrentWriter(writer io.Writer, keepOrder bool) *ConcurrentWriter {
 	return &ConcurrentWriter{
 		keepOrder:  keepOrder,
 		handle:     writer,
-		firstWrite: true,
 		cache:      make(map[int][]byte),
 	}
 }
@@ -47,16 +45,11 @@ func (c *ConcurrentWriter) writeBuff(buff []byte) error {
 		return nil
 	}
 
-	if !c.firstWrite {
-		if _, err := c.handle.Write([]byte{'\n'}); err != nil {
-			return err
-		}
-
-	} else {
-		c.firstWrite = false
+	if _, err := c.handle.Write(buff); err != nil {
+		return err
 	}
 
-	if _, err := c.handle.Write(buff); err != nil {
+	if _, err := c.handle.Write([]byte{'\n'}); err != nil {
 		return err
 	}
 
