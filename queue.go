@@ -51,7 +51,7 @@ func NewQueue(chunks []Chunk, workers int, lineProcessor LineProcessor, opts ...
 	}
 
 	if opt.OverflowScanBuffSize == 0 {
-		opt.OverflowScanBuffSize = defaultOverflowScanSize
+		opt.OverflowScanBuffSize = DefaultOverflowScanSize
 	}
 
 	if opt.Logger == nil {

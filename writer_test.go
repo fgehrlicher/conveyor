@@ -37,7 +37,10 @@ func TestWriteChunksInOrder(t *testing.T) {
 
 	var expectedOutput string
 	for i := 1; i <= 3; i++ {
-		expectedOutput += string(testChunks[i]) + "\n"
+		expectedOutput += string(testChunks[i])
+		if i != 3 {
+			expectedOutput += "\n"
+		}
 	}
 
 	assertion.Equal(expectedOutput, output, "Chunks buff not in Order")
@@ -55,14 +58,18 @@ func TestDoesNotWriteEmptyCache(t *testing.T) {
 func TestFailingWriterPassesError(t *testing.T) {
 	assertion := assert.New(t)
 	writer := conveyor.NewConcurrentWriter(&InvalidWriter{FailAt: 0}, true)
+
 	assertion.ErrorIs(
 		writer.Write(&conveyor.Chunk{Id: 1}, testChunks[1]),
 		ErrInvalidWrite,
 	)
 
 	writer = conveyor.NewConcurrentWriter(&InvalidWriter{FailAt: 1}, true)
+
+	assertion.NoError(writer.Write(&conveyor.Chunk{Id: 1}, testChunks[1]))
+
 	assertion.ErrorIs(
-		writer.Write(&conveyor.Chunk{Id: 1}, testChunks[1]),
+		writer.Write(&conveyor.Chunk{Id: 2}, testChunks[1]),
 		ErrInvalidWrite,
 	)
 }

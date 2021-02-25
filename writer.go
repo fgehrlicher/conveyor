@@ -11,6 +11,7 @@ type ConcurrentWriter struct {
 	keepOrder        bool
 	lastChunkWritten int
 	cache            map[int][]byte
+	firstWrite       bool
 
 	sync.Mutex
 }
@@ -20,6 +21,7 @@ func NewConcurrentWriter(writer io.Writer, keepOrder bool) *ConcurrentWriter {
 		keepOrder: keepOrder,
 		handle:    writer,
 		cache:     make(map[int][]byte),
+		firstWrite: true,
 	}
 }
 
@@ -62,13 +64,19 @@ func (c *ConcurrentWriter) writeBuff(buff []byte) error {
 		return nil
 	}
 
+	if c.firstWrite {
+		c.firstWrite = false
+	} else {
+		if _, err := c.handle.Write([]byte{'\n'}); err != nil {
+			return err
+		}
+	}
+
 	if _, err := c.handle.Write(buff); err != nil {
 		return err
 	}
 
-	if _, err := c.handle.Write([]byte{'\n'}); err != nil {
-		return err
-	}
+
 
 	return nil
 }

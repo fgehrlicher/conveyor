@@ -110,6 +110,6 @@ func (i *InvalidWriter) Write(p []byte) (int, error) {
 	return 0, nil
 }
 
-func NewNullLogger() *log.Logger {
+func NullLogger() *log.Logger {
 	return log.New(ioutil.Discard, "", 0)
 }

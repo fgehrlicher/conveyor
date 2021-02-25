@@ -10,7 +10,7 @@ import (
 )
 
 // Chosen by fair dice roll.
-const defaultOverflowScanSize = 1024
+const DefaultOverflowScanSize = 1024
 
 var (
 	ErrNoLinebreakInChunk = errors.New("no linebreak found in buff")
@@ -165,7 +165,7 @@ func (w *Worker) readChunkInBuff() (err error) {
 	return
 }
 
-// readOverflowInBuff reads chunks of size defaultOverflowScanSize until the next
+// readOverflowInBuff reads chunks of size DefaultOverflowScanSize until the next
 // linebreak has been found.
 func (w *Worker) readOverflowInBuff() error {
 	buffSize := len(w.overflowBuff)
