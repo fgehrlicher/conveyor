@@ -17,13 +17,15 @@ var textToRedact = []string{
 
 func main() {
 	resultFile, err := os.Create("redacted_data.txt")
-	checkError(err)
-
+	if err != nil {
+		log.Fatal(err)
+	}
 	concurrentWriter := conveyor.NewConcurrentWriter(resultFile, true)
 
 	chunks, err := conveyor.GetChunks("../../testdata/data.txt", 512, concurrentWriter)
-	checkError(err)
-
+	if err != nil {
+		log.Fatal(err)
+	}
 	result := conveyor.NewQueue(chunks, 4, conveyor.LineProcessorFunc(Redact)).Work()
 
 	log.Printf("processed %d lines", result.Lines)
@@ -37,10 +39,4 @@ func Redact(line []byte, metadata conveyor.LineMetadata) ([]byte, error) {
 	}
 
 	return []byte(result), nil
-}
-
-func checkError(err error) {
-	if err != nil {
-		log.Fatal(err)
-	}
 }

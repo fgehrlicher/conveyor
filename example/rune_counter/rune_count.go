@@ -11,7 +11,9 @@ import (
 
 func main() {
 	chunks, err := conveyor.GetChunks("../../testdata/data.txt", 512, nil)
-	checkError(err)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	rc := NewRuneCounter([]rune{'a', 'b', 'c', ' ', '.'})
 
@@ -64,10 +66,4 @@ func (c *RuneCounter) Result() string {
 	}
 
 	return result
-}
-
-func checkError(err error) {
-	if err != nil {
-		log.Fatal(err)
-	}
 }
