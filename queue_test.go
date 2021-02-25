@@ -121,8 +121,8 @@ func TestQueueFailsForInvalidChunks(t *testing.T) {
 
 func TestQueueErrorsForTooSmallChunks(t *testing.T) {
 	var (
-		assertion      = assert.New(t)
-		testFile       = "testdata/data.txt"
+		assertion = assert.New(t)
+		testFile  = "testdata/data.txt"
 	)
 
 	chunks, err := conveyor.GetChunks(testFile, 10, nil)

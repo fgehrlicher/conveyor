@@ -18,9 +18,9 @@ type ConcurrentWriter struct {
 
 func NewConcurrentWriter(writer io.Writer, keepOrder bool) *ConcurrentWriter {
 	return &ConcurrentWriter{
-		keepOrder: keepOrder,
-		handle:    writer,
-		cache:     make(map[int][]byte),
+		keepOrder:  keepOrder,
+		handle:     writer,
+		cache:      make(map[int][]byte),
 		firstWrite: true,
 	}
 }
@@ -75,8 +75,6 @@ func (c *ConcurrentWriter) writeBuff(buff []byte) error {
 	if _, err := c.handle.Write(buff); err != nil {
 		return err
 	}
-
-
 
 	return nil
 }

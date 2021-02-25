@@ -20,12 +20,14 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	concurrentWriter := conveyor.NewConcurrentWriter(resultFile, true)
 
 	chunks, err := conveyor.GetChunks("../../testdata/data.txt", 512, concurrentWriter)
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	result := conveyor.NewQueue(chunks, 4, conveyor.LineProcessorFunc(Redact)).Work()
 
 	log.Printf("processed %d lines", result.Lines)

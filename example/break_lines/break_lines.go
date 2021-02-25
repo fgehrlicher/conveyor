@@ -13,6 +13,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	concurrentWriter := conveyor.NewConcurrentWriter(resultFile, true)
 
 	chunks, err := conveyor.GetChunks("../../testdata/data.txt", 512, concurrentWriter)
