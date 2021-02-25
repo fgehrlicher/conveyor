@@ -10,34 +10,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const testFile = "testdata/5_lines.txt"
-
-func generateTestChunks(count, size int, file string) []conveyor.Chunk {
-	var (
-		result []conveyor.Chunk
-		offset = 0
-	)
-
-	for i := 0; i < count; i++ {
-		result = append(result, conveyor.Chunk{
-			Id:     i + 1,
-			File:   file,
-			Offset: int64(offset),
-			Size:   size,
-		})
-
-		offset += size
-	}
-
-	return result
-}
+const chunkTestFile = "testdata/5_lines.txt"
 
 func TestGetChunksReturnsCorrectChunks(t *testing.T) {
 	assertion := assert.New(t)
-	chunks, err := conveyor.GetChunks(testFile, 100, nil)
+	chunks, err := conveyor.GetChunks(chunkTestFile, 100, nil)
 
 	assertion.NoError(err)
-	assertion.Equal(generateTestChunks(4, 100, testFile), chunks)
+	assertion.Equal(generateTestChunks(4, 100, chunkTestFile), chunks)
 }
 
 func TestGetChunksFailsForInvalidFile(t *testing.T) {
@@ -64,7 +44,7 @@ func TestLogChunkResult(t *testing.T) {
 	errorLoggerOutput := bytes.Buffer{}
 
 	queue := conveyor.NewQueue(
-		generateTestChunks(100, 1024, testFile),
+		generateTestChunks(100, 1024, chunkTestFile),
 		1,
 		nil,
 		&conveyor.QueueOpts{

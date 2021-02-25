@@ -2,66 +2,11 @@ package conveyor_test
 
 import (
 	"bytes"
-	"errors"
 	"testing"
 
 	"github.com/fgehrlicher/conveyor"
 	"github.com/stretchr/testify/assert"
 )
-
-var testChunks = map[int][]byte{
-	1: []byte(
-		`lyLztdptPSsSmyhFJNFQ
-mXAgfwIVMqxUEwFhxpSw
-PcnMvgAeDEbbVXMPXSOR
-YzLmCAXVxPilRydPJkjb
-eWOvSqMIlNvpubnVpzEX
-EYUgrVMATCHczAdSwUIy
-yCTJNSmdxGumROOiOBlT
-IXUtvSpmbiEbvkQLdmVh
-XCEHtaJZrJYjmWSyDUdl`),
-	2: []byte(
-		`CZuConYNNJqKGlzGkDvF
-DukJstpKNfbaLaWrqPQl
-qWdnTAWUXkbjasAXbnyt
-RCyTjpjjcZgDlpXEVUQu
-zytCncspCpvmcIuLWfqf
-qaHKgJjmTVwKpCSmwfLa
-iWIZemuuygQlvuADiOJd
-XepQsbPdCiibyZQnaKXl
-kZnHUbOfGgYHZecDXdrs
-qpRuMEDqzWLjoFMkNjDh`),
-	3: []byte(
-		`hBLAinVBpobEFyZkTdWb
-ljGRjCeCvqfuCGWHNdBY
-yWaHsmIzTaxtQnFkrtSv
-kqcfcfAKDmCYyeWwujfY
-KGzuUUMFgQGdgwApUcCV
-cifpEFCVBEuImbYYXNdB
-YrPMaSzKSPoGZNCfJfMS
-AbEdIWcXGklgUCvRLoui
-yImoNFJYHmyRFoGLTYbM
-bkFmBnUNzURsenzAJWAF
-ZkoUdVOZsxoXublmWfnB
-KkZlrxScUXfUirjMZuoG`),
-}
-
-var ErrInvalidWrite = errors.New("invalid write")
-
-type InvalidWriter struct {
-	FailAt int
-
-	write int
-}
-
-func (i *InvalidWriter) Write(p []byte) (int, error) {
-	if i.FailAt == i.write {
-		return 0, ErrInvalidWrite
-	}
-
-	i.write++
-	return 0, nil
-}
 
 func TestWriteChunksNoOrder(t *testing.T) {
 	var buff bytes.Buffer

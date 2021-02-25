@@ -1,10 +1,10 @@
 package conveyor_test
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
 
 	"github.com/fgehrlicher/conveyor"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestLineProcessorFunc(t *testing.T) {

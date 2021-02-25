@@ -2,39 +2,13 @@ package conveyor_test
 
 import (
 	"bytes"
-	"github.com/fgehrlicher/conveyor"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
-	"strings"
 	"sync"
 	"testing"
+
+	"github.com/fgehrlicher/conveyor"
+	"github.com/stretchr/testify/assert"
 )
-
-var textToRedact = []string{
-	"testmail@test.com",
-	"test@mail.de",
-	"ullamcorper",
-	"Lorem",
-}
-
-func Redact(line []byte, metadata conveyor.LineMetadata) ([]byte, error) {
-	result := string(line)
-
-	for _, word := range textToRedact {
-		result = strings.ReplaceAll(result, word, strings.Repeat("x", len(word)))
-	}
-
-	return []byte(result), nil
-}
-
-type TestChunkWriter struct {
-	Buff *bytes.Buffer
-}
-
-func (t *TestChunkWriter) Write(chunk *conveyor.Chunk, buff []byte) error {
-	t.Buff.Write(buff)
-	return nil
-}
 
 func TestWorker(t *testing.T) {
 	assertion := assert.New(t)
