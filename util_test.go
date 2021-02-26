@@ -84,7 +84,7 @@ func generateTestChunks(count, size int, file string) []conveyor.Chunk {
 	for i := 0; i < count; i++ {
 		result = append(result, conveyor.Chunk{
 			Id:     i + 1,
-			File:   file,
+			In:     &conveyor.FileReader{Filename: file},
 			Offset: int64(offset),
 			Size:   size,
 		})

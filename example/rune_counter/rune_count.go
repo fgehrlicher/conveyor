@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	chunks, err := conveyor.GetChunks("../../testdata/data.txt", 512, nil)
+	chunks, err := conveyor.GetChunksFromFile("../../testdata/data.txt", 512, nil)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -17,14 +17,14 @@ func TestWorker(t *testing.T) {
 	out := &TestChunkWriter{&bytes.Buffer{}}
 	chunk := conveyor.Chunk{
 		Id:   1,
-		File: "testdata/data.txt",
+		In:   &conveyor.FileReader{Filename: "testdata/data.txt"},
 		Size: 8000,
 		Out:  out,
 	}
 
 	expectedChunk := conveyor.Chunk{
 		Id:             1,
-		File:           "testdata/data.txt",
+		In:             &conveyor.FileReader{Filename: "testdata/data.txt"},
 		Offset:         0,
 		Size:           8000,
 		RealSize:       6936,
@@ -72,7 +72,7 @@ func TestWorkerReturnsInvalidLineProcessor(t *testing.T) {
 
 	chunk := conveyor.Chunk{
 		Id:   1,
-		File: "testdata/data.txt",
+		In:   &conveyor.FileReader{Filename: "testdata/data.txt"},
 		Size: 8000,
 		Out:  nil,
 	}

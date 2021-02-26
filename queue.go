@@ -6,8 +6,6 @@ import (
 	"sync"
 )
 
-type ChunkResultLogger func(queue *Queue, result ChunkResult, currentChunkNumber int)
-
 type Queue struct {
 	workers       int
 	chunkCount    int
@@ -47,7 +45,7 @@ func NewQueue(chunks []Chunk, workers int, lineProcessor LineProcessor, opts ...
 	}
 
 	if opt.ChunkResultLogger == nil {
-		opt.ChunkResultLogger = LogChunkResult
+		opt.ChunkResultLogger = DefaultChunkResultLogger
 	}
 
 	if opt.OverflowScanBuffSize == 0 {

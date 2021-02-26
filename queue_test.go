@@ -58,7 +58,7 @@ func TestQueue_Work(t *testing.T) {
 	for _, test := range tt {
 		buff := &bytes.Buffer{}
 		concurrentWriter := conveyor.NewConcurrentWriter(buff, true)
-		chunks, err := conveyor.GetChunks(testFile, test.ChunkSize, concurrentWriter)
+		chunks, err := conveyor.GetChunksFromFile(testFile, test.ChunkSize, concurrentWriter)
 		assertion.NoError(err)
 		assertion.Equal(test.ExpectedChunks, len(chunks))
 
@@ -125,7 +125,7 @@ func TestQueueErrorsForTooSmallChunks(t *testing.T) {
 		testFile  = "testdata/data.txt"
 	)
 
-	chunks, err := conveyor.GetChunks(testFile, 10, nil)
+	chunks, err := conveyor.GetChunksFromFile(testFile, 10, nil)
 	assertion.NoError(err)
 
 	result := conveyor.NewQueue(

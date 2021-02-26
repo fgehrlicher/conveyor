@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
 	"sync"
 )
 
@@ -24,7 +23,8 @@ type Worker struct {
 	chunkSize     int64
 	lineProcessor LineProcessor
 
-	handle       *os.File
+	handle       io.ReadSeekCloser
+	handleName   string
 	chunk        *Chunk
 	buff         []byte
 	overflowBuff []byte
@@ -131,8 +131,8 @@ func (w *Worker) prepareBuff() error {
 // prepareFileHandles creates the main read handle and sets
 // the read offset.
 func (w *Worker) prepareFileHandles() (err error) {
-	if w.handle == nil || w.handle.Name() != w.chunk.File {
-		w.handle, err = os.Open(w.chunk.File)
+	if w.handle == nil || w.chunk.In.GetName() != w.handleName {
+		w.handle, err = w.chunk.In.OpenHandle()
 		if err != nil {
 			return
 		}
