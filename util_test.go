@@ -1,7 +1,6 @@
 package conveyor_test
 
 import (
-	"bytes"
 	"errors"
 	"io/ioutil"
 	"log"
@@ -64,15 +63,6 @@ func Redact(line []byte, metadata conveyor.LineMetadata) ([]byte, error) {
 	}
 
 	return []byte(result), nil
-}
-
-type TestChunkWriter struct {
-	Buff *bytes.Buffer
-}
-
-func (t *TestChunkWriter) Write(chunk *conveyor.Chunk, buff []byte) error {
-	t.Buff.Write(buff)
-	return nil
 }
 
 func generateTestChunks(count, size int, file string) []conveyor.Chunk {

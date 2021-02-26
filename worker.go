@@ -258,7 +258,6 @@ func (w *Worker) processLastLine() error {
 			Chunk: w.chunk,
 		},
 	)
-
 	if err != nil {
 		return err
 	}
