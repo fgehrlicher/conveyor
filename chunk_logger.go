@@ -37,4 +37,3 @@ func LogChunkResult(queue *Queue, result ChunkResult, currentChunkNumber int) {
 		)
 	}
 }
-
