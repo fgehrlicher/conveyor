@@ -204,7 +204,7 @@ func (w *Worker) processBuff() error {
 		relativeIndex = bytes.IndexByte(w.buff[w.buffHead:], '\n')
 
 		if relativeIndex == -1 {
-			if err := w.processLastLine(); err != nil {
+			if err := w.processOverflowLine(); err != nil {
 				return fmt.Errorf("error while processing last Line of Chunk: %w", err)
 			}
 
@@ -236,16 +236,14 @@ func (w *Worker) processLine(relativeIndex int) error {
 		return err
 	}
 
-	if err := w.addToOutBuff(convertedLine); err != nil {
-		return err
-	}
+	w.addToOutBuff(convertedLine)
 
 	w.buffHead += relativeIndex
 	w.chunk.LinesProcessed++
 	return nil
 }
 
-func (w *Worker) processLastLine() error {
+func (w *Worker) processOverflowLine() error {
 	remainingBuff := w.buff[w.buffHead:]
 	line := make([]byte, len(remainingBuff)+w.overflowBuffHead)
 	copy(line[:len(remainingBuff)], remainingBuff)
@@ -262,17 +260,15 @@ func (w *Worker) processLastLine() error {
 		return err
 	}
 
-	if err := w.addToOutBuff(convertedLine); err != nil {
-		return err
-	}
+	w.addToOutBuff(convertedLine)
 
 	w.chunk.LinesProcessed++
 	return nil
 }
 
-func (w *Worker) addToOutBuff(b []byte) error {
+func (w *Worker) addToOutBuff(b []byte) {
 	if len(b) == 0 {
-		return nil
+		return
 	}
 
 	if w.outBuffHead+len(b) > len(w.outBuff) {
@@ -283,7 +279,6 @@ func (w *Worker) addToOutBuff(b []byte) error {
 	}
 
 	w.outBuffHead += len(b)
-	return nil
 }
 
 func (w *Worker) writeOutBuff() (err error) {
