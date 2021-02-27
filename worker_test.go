@@ -156,8 +156,8 @@ func TestWorkerFailsOverflowBuff(t *testing.T) {
 	tasks := make(chan conveyor.Chunk, 1)
 
 	tasks <- conveyor.Chunk{
-		Id:   1,
-		In:   &FailureAtReader{
+		Id: 1,
+		In: &FailureAtReader{
 			Filename: "testdata/data.txt",
 			FailAt:   1,
 		},
@@ -166,8 +166,6 @@ func TestWorkerFailsOverflowBuff(t *testing.T) {
 	}
 
 	close(tasks)
-
-
 
 	conveyor.NewWorker(
 		tasks,
