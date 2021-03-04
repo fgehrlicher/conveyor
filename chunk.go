@@ -5,6 +5,15 @@ import (
 	"os"
 )
 
+type ChunkWriter interface {
+	Write(chunk *Chunk, buff []byte) error
+}
+
+type ChunkReader interface {
+	OpenHandle() (io.ReadSeekCloser, error)
+	GetName() string
+}
+
 type Chunk struct {
 	Id     int
 	Offset int64
@@ -17,15 +26,6 @@ type Chunk struct {
 
 	In  ChunkReader
 	Out ChunkWriter
-}
-
-type ChunkWriter interface {
-	Write(chunk *Chunk, buff []byte) error
-}
-
-type ChunkReader interface {
-	OpenHandle() (io.ReadSeekCloser, error)
-	GetName() string
 }
 
 type ChunkResult struct {
