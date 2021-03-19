@@ -119,7 +119,7 @@ func (queue *Queue) Work() QueueResult {
 	)
 
 	for _, result := range results {
-		totalLines += int64(result.Chunk.LinesProcessed)
+		totalLines += int64(result.Lines)
 		if !result.Ok() {
 			failedChunks++
 		}

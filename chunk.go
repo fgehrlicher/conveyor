@@ -5,13 +5,19 @@ import (
 	"os"
 )
 
+// ChunkWriter is the interface that wraps the basic Write method.
+// Write writes len(buff) bytes from buff to the underlying data stream.
 type ChunkWriter interface {
 	Write(chunk *Chunk, buff []byte) error
 }
 
+// ChunkReader is the interface that wraps OpenHandle and GetHandleID.
+// OpenHandle opens a resource and returns a io.ReadSeekCloser
+// GetHandleID returns the name / id of the underlying resource. That strings is used for
+// for caching purposes inside Worker.
 type ChunkReader interface {
 	OpenHandle() (io.ReadSeekCloser, error)
-	GetName() string
+	GetHandleID() string
 }
 
 type Chunk struct {
@@ -19,24 +25,25 @@ type Chunk struct {
 	Offset int64
 	Size   int
 
-	RealSize       int
-	RealOffset     int64
-	LinesProcessed int
-	EOF            bool
-
 	In  ChunkReader
 	Out ChunkWriter
 }
 
 type ChunkResult struct {
-	Chunk Chunk
-	Err   error
+	Chunk *Chunk
+
+	Err        error
+	RealSize   int
+	RealOffset int64
+	Lines      int
+	EOF        bool
 }
 
 func (c *ChunkResult) Ok() bool {
 	return c.Err == nil
 }
 
+// GetChunksFromFile generates a slice of Chunk for a given file path and ChunkWriter
 func GetChunksFromFile(filePath string, chunkSize int, out ChunkWriter) ([]Chunk, error) {
 	info, err := os.Stat(filePath)
 	if err != nil {

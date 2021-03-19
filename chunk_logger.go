@@ -25,7 +25,7 @@ func LogChunkResult(queue *Queue, result ChunkResult, currentChunkNumber int) {
 			queue.chunkCount,
 			percentPadding,
 			percent,
-			result.Chunk.LinesProcessed,
+			result.Lines,
 		)
 	} else {
 		queue.ErrLogger.Printf(

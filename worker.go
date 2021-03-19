@@ -26,6 +26,7 @@ type Worker struct {
 	handle       io.ReadSeekCloser
 	handleName   string
 	chunk        *Chunk
+	chunkResult  *ChunkResult
 	buff         []byte
 	overflowBuff []byte
 	outBuff      []byte
@@ -61,16 +62,14 @@ func NewWorker(
 // Work processes chunks from Worker.TasksChan until queue is empty
 func (w *Worker) Work() {
 	defer w.waitGroup.Done()
-	var err error
 
 	for chunk := range w.TasksChan {
 		w.chunk = &chunk
+		w.chunkResult = &ChunkResult{Chunk: &chunk}
 
-		err = w.Process()
-		w.resultChan <- ChunkResult{
-			Chunk: *w.chunk,
-			Err:   err,
-		}
+		w.chunkResult.Err = w.Process()
+
+		w.resultChan <- *w.chunkResult
 	}
 }
 
@@ -113,16 +112,16 @@ func (w *Worker) prepareBuff() error {
 		}
 
 		w.buffHead += i + 1
-		w.chunk.RealOffset = w.chunk.Offset + int64(i)
+		w.chunkResult.RealOffset = w.chunk.Offset + int64(i)
 	}
 
-	if !w.chunk.EOF {
+	if !w.chunkResult.EOF {
 		err := w.readOverflowInBuff()
 		if err != nil {
 			return err
 		}
 
-		w.chunk.RealSize += len(w.overflowBuff)
+		w.chunkResult.RealSize += len(w.overflowBuff)
 	}
 
 	return nil
@@ -131,7 +130,7 @@ func (w *Worker) prepareBuff() error {
 // prepareFileHandles creates the main read handle and sets
 // the read offset.
 func (w *Worker) prepareFileHandles() (err error) {
-	if w.handle == nil || w.chunk.In.GetName() != w.handleName {
+	if w.handle == nil || w.chunk.In.GetHandleID() != w.handleName {
 		w.handle, err = w.chunk.In.OpenHandle()
 		if err != nil {
 			return
@@ -155,11 +154,11 @@ func (w *Worker) resetBuffers() {
 
 // readChunkInBuff reads up to len(worker.buff) bytes from the file.
 func (w *Worker) readChunkInBuff() (err error) {
-	w.chunk.RealSize, err = w.handle.Read(w.buff)
+	w.chunkResult.RealSize, err = w.handle.Read(w.buff)
 
-	if w.chunk.RealSize != w.chunk.Size {
-		w.buff = w.buff[:w.chunk.RealSize]
-		w.chunk.EOF = true
+	if w.chunkResult.RealSize != w.chunk.Size {
+		w.buff = w.buff[:w.chunkResult.RealSize]
+		w.chunkResult.EOF = true
 	}
 
 	return
@@ -215,7 +214,7 @@ func (w *Worker) processBuff() error {
 			return fmt.Errorf("error while processing Line of Chunk: %w", err)
 		}
 
-		if w.buffHead == w.chunk.RealSize {
+		if w.buffHead == w.chunkResult.RealSize {
 			break
 		}
 	}
@@ -227,7 +226,7 @@ func (w *Worker) processLine(relativeIndex int) error {
 	line := w.buff[w.buffHead : w.buffHead+relativeIndex]
 	convertedLine, err := w.lineProcessor.Process(
 		line, LineMetadata{
-			Line:  w.chunk.LinesProcessed + 1,
+			Line:  w.chunkResult.Lines + 1,
 			Chunk: w.chunk,
 		},
 	)
@@ -239,7 +238,7 @@ func (w *Worker) processLine(relativeIndex int) error {
 	w.addToOutBuff(convertedLine)
 
 	w.buffHead += relativeIndex
-	w.chunk.LinesProcessed++
+	w.chunkResult.Lines++
 	return nil
 }
 
@@ -252,7 +251,7 @@ func (w *Worker) processOverflowLine() error {
 	convertedLine, err := w.lineProcessor.Process(
 		line,
 		LineMetadata{
-			Line:  w.chunk.LinesProcessed + 1,
+			Line:  w.chunkResult.Lines + 1,
 			Chunk: w.chunk,
 		},
 	)
@@ -262,7 +261,7 @@ func (w *Worker) processOverflowLine() error {
 
 	w.addToOutBuff(convertedLine)
 
-	w.chunk.LinesProcessed++
+	w.chunkResult.Lines++
 	return nil
 }
 

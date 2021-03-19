@@ -33,33 +33,34 @@ func TestLogChunkResult(t *testing.T) {
 		ExpectedErrorOutput string
 	}{
 		{
-			ChunkResult:       conveyor.ChunkResult{Chunk: conveyor.Chunk{Id: 1, LinesProcessed: 100}},
+			ChunkResult:       conveyor.ChunkResult{Chunk: &conveyor.Chunk{Id: 1}, Lines: 100},
 			currentChunkCount: 1,
 			ExpectedOutput:    "[  1/100]   1.00 % done. lines: 100\n",
 		},
 		{
-			ChunkResult:       conveyor.ChunkResult{Chunk: conveyor.Chunk{Id: 10, LinesProcessed: 100}},
+			ChunkResult:       conveyor.ChunkResult{Chunk: &conveyor.Chunk{Id: 10}, Lines: 100},
 			currentChunkCount: 10,
 			ExpectedOutput:    "[ 10/100]  10.00 % done. lines: 100\n",
 		},
 		{
-			ChunkResult:       conveyor.ChunkResult{Chunk: conveyor.Chunk{Id: 50, LinesProcessed: 100}},
+			ChunkResult:       conveyor.ChunkResult{Chunk: &conveyor.Chunk{Id: 50}, Lines: 100},
 			currentChunkCount: 50,
 			ExpectedOutput:    "[ 50/100]  50.00 % done. lines: 100\n",
 		},
 		{
-			ChunkResult:       conveyor.ChunkResult{Chunk: conveyor.Chunk{Id: 99, LinesProcessed: 100}},
+			ChunkResult:       conveyor.ChunkResult{Chunk: &conveyor.Chunk{Id: 99}, Lines: 100},
 			currentChunkCount: 99,
 			ExpectedOutput:    "[ 99/100]  99.00 % done. lines: 100\n",
 		},
 		{
-			ChunkResult:       conveyor.ChunkResult{Chunk: conveyor.Chunk{Id: 100, LinesProcessed: 100}},
+			ChunkResult:       conveyor.ChunkResult{Chunk: &conveyor.Chunk{Id: 100}, Lines: 100},
 			currentChunkCount: 100,
 			ExpectedOutput:    "[100/100] 100.00 % done. lines: 100\n",
 		},
 		{
 			ChunkResult: conveyor.ChunkResult{
-				Chunk: conveyor.Chunk{Id: 10, LinesProcessed: 100},
+				Chunk: &conveyor.Chunk{Id: 10},
+				Lines: 100,
 				Err:   errors.New("chunk error: test error"),
 			},
 			currentChunkCount:   10,

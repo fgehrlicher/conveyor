@@ -28,7 +28,7 @@ func TestGetChunksFailsForInvalidFile(t *testing.T) {
 func TestChunkResultIsNotOkForErr(t *testing.T) {
 	assertion := assert.New(t)
 	chunkResult := conveyor.ChunkResult{
-		Chunk: conveyor.Chunk{},
+		Chunk: &conveyor.Chunk{},
 		Err:   errors.New(""),
 	}
 

@@ -13,6 +13,6 @@ func (f *FileReader) OpenHandle() (io.ReadSeekCloser, error) {
 	return os.Open(f.Filename)
 }
 
-func (f *FileReader) GetName() string {
+func (f *FileReader) GetHandleID() string {
 	return f.Filename
 }

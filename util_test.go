@@ -168,7 +168,7 @@ func (f *FailureAtReader) OpenHandle() (io.ReadSeekCloser, error) {
 	}, nil
 }
 
-func (f *FailureAtReader) GetName() string {
+func (f *FailureAtReader) GetHandleID() string {
 	return f.Filename
 }
 
@@ -195,6 +195,6 @@ func (f *FailureFileReader) OpenHandle() (io.ReadSeekCloser, error) {
 	return FailureReadSeekCloser{}, nil
 }
 
-func (f *FailureFileReader) GetName() string {
+func (f *FailureFileReader) GetHandleID() string {
 	return f.Filename
 }
