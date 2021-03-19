@@ -65,7 +65,7 @@ func (w *Worker) Work() {
 
 	for chunk := range w.TasksChan {
 		w.chunk = &chunk
-		w.chunkResult = &ChunkResult{Chunk: &chunk}
+		w.chunkResult = &ChunkResult{Chunk: chunk}
 
 		w.chunkResult.Err = w.Process()
 

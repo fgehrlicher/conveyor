@@ -30,7 +30,7 @@ type Chunk struct {
 }
 
 type ChunkResult struct {
-	Chunk *Chunk
+	Chunk Chunk
 
 	Err        error
 	RealSize   int
