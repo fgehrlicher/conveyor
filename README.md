@@ -6,50 +6,47 @@
 
 conveyor is a lightweight multithreaded file processing library.
 
-## ⚠️ WIP ⚠️ 
-
-
+## ⚠️ WIP ⚠️
 
 ## Example Usage
 
 ```go
-package main
-
-import (
-	"log"
-	"os"
-	"strings"
-
-	"github.com/fgehrlicher/conveyor"
-)
-
-var textToRedact = []string{
-	"testmail@test.com",
-	"test@mail.de",
-}
-
 func main() {
+	// Create the output file
 	resultFile, _ := os.Create("redacted_data.txt")
+
+	// Instantiate a new ConcurrentWriter which wraps the resultFile handle.
+	// The ConcurrentWriter type is just a small thread-safe wrapper for 
+	// io.Writer which is able to keep the order of lines across all chunks.
 	w := conveyor.NewConcurrentWriter(resultFile, true)
 
+	// Split the input file into chunks of 512 bytes with 
+	// the concurrent writer as output ChunkWriter.
 	chunks, _ := conveyor.GetChunksFromFile("data.txt", 512, w)
 
-	queue := conveyor.NewQueue(chunks, 4, conveyor.LineProcessorFunc(Redact))
-	
-	result := queue.Work()
+	// Creates and executes a Queue with 4 workers and the Redact function as LineProcessor.
+	result := conveyor.NewQueue(chunks, 4, conveyor.LineProcessorFunc(Redact)).Work()
 
+	// Prints the number of lines processed.
 	log.Printf("processed %d lines", result.Lines)
 }
 
-func Redact(line []byte, metadata conveyor.LineMetadata) ([]byte, error) {
-	result := string(line)
+// Email that should be redacted
+var emailToRedact = "testmail@test.com"
 
-	for _, word := range textToRedact {
-		result = strings.ReplaceAll(result, word, strings.Repeat("x", len(word)))
-	}
+// Redact replaces all occurrences of "testmail@test.com" with x
+func Redact(line []byte, metadata conveyor.LineMetadata) ([]byte, error) {
+	result := strings.ReplaceAll(
+		string(line),
+		emailToRedact,
+		strings.Repeat("x", len(emailToRedact)),
+	)
 
 	return []byte(result), nil
 }
-
 ```
+
+See [examples](https://github.com/fgehrlicher/conveyor/tree/main/example) for detailed information on usage.
+
+
 

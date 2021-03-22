@@ -13,7 +13,7 @@ type ChunkWriter interface {
 
 // ChunkReader is the interface that wraps OpenHandle and GetHandleID.
 // OpenHandle opens a resource and returns a io.ReadSeekCloser
-// GetHandleID returns the name / id of the underlying resource. That strings is used for
+// GetHandleID returns the name / id of the underlying resource. This string is used for
 // caching purposes inside Worker.
 type ChunkReader interface {
 	OpenHandle() (io.ReadSeekCloser, error)
