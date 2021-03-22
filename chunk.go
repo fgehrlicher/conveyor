@@ -14,12 +14,13 @@ type ChunkWriter interface {
 // ChunkReader is the interface that wraps OpenHandle and GetHandleID.
 // OpenHandle opens a resource and returns a io.ReadSeekCloser
 // GetHandleID returns the name / id of the underlying resource. That strings is used for
-// for caching purposes inside Worker.
+// caching purposes inside Worker.
 type ChunkReader interface {
 	OpenHandle() (io.ReadSeekCloser, error)
 	GetHandleID() string
 }
 
+// Chunk represents a part of a io.ReadSeekCloser.
 type Chunk struct {
 	Id     int
 	Offset int64
@@ -29,6 +30,8 @@ type Chunk struct {
 	Out ChunkWriter
 }
 
+// ChunkResult is the type returned after processing a chunk.
+// It contains additional processing metadata.
 type ChunkResult struct {
 	Chunk Chunk
 
@@ -39,6 +42,7 @@ type ChunkResult struct {
 	EOF        bool
 }
 
+// Ok checks if the chunk processing was completed successfully.
 func (c *ChunkResult) Ok() bool {
 	return c.Err == nil
 }
