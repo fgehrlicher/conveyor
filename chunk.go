@@ -66,7 +66,7 @@ func GetChunksFromFile(filePath string, chunkSize int, out ChunkWriter) ([]Chunk
 			Offset: currentOffset,
 			Size:   chunkSize,
 			Out:    out,
-			In:     &FileReader{Filename: filePath},
+			In:     &FileReader{FilePath: filePath},
 		})
 
 		currentOffset += int64(chunkSize)

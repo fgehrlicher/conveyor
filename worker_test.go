@@ -14,7 +14,7 @@ func GetSingleChunkChan(file string, size int, out conveyor.ChunkWriter) chan co
 
 	tasks <- conveyor.Chunk{
 		Id:   1,
-		In:   &conveyor.FileReader{Filename: file},
+		In:   &conveyor.FileReader{FilePath: file},
 		Size: size,
 		Out:  out,
 	}

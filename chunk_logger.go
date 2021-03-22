@@ -2,10 +2,13 @@ package conveyor
 
 import "strconv"
 
+// ChunkResultLogger
 type ChunkResultLogger func(queue *Queue, result ChunkResult, currentChunkNumber int)
 
+// DefaultChunkResultLogger is the default logger used by Queue.
 var DefaultChunkResultLogger = LogChunkResult
 
+// LogChunkResult is the default ChunkResultLogger.
 func LogChunkResult(queue *Queue, result ChunkResult, currentChunkNumber int) {
 	percent := float32(currentChunkNumber) / float32(queue.chunkCount) * 100
 
