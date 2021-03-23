@@ -12,7 +12,7 @@ conveyor is a lightweight multithreaded file processing library.
 
 ```go
 func main() {
-	// Create the output file
+	// Creates the output file
 	resultFile, _ := os.Create("redacted_data.txt")
 
 	// Instantiate a new ConcurrentWriter which wraps the resultFile handle.
@@ -24,10 +24,10 @@ func main() {
 	// the concurrent writer as output ChunkWriter.
 	chunks, _ := conveyor.GetChunksFromFile("data.txt", 512, w)
 
-	// Creates and executes a Queue with 4 workers and the Redact function as LineProcessor.
+	// Create and execute a Queue with 4 workers and the Redact function as LineProcessor.
 	result := conveyor.NewQueue(chunks, 4, conveyor.LineProcessorFunc(Redact)).Work()
 
-	// Prints the number of lines processed.
+	// Print the number of lines processed.
 	log.Printf("processed %d lines", result.Lines)
 }
 
