@@ -12,8 +12,8 @@ import (
 
 const (
 	inputFilePath = "../../testdata/animals.csv"
-	chunkSize = 512
-	workerCount = 4
+	chunkSize     = 512
+	workerCount   = 4
 
 	header         = "id,name,scientific_name"
 	sortFieldIndex = 3
@@ -36,14 +36,14 @@ func main() {
 }
 
 type AnimalSorter struct {
-	handles     map[string]io.Writer
+	handles map[string]io.Writer
 
 	sync.Mutex
 }
 
 func NewAnimalSorter() *AnimalSorter {
 	return &AnimalSorter{
-		handles:     make(map[string]io.Writer),
+		handles: make(map[string]io.Writer),
 	}
 }
 
@@ -69,7 +69,7 @@ func (c *AnimalSorter) Process(line []byte, _ conveyor.LineMetadata) ([]byte, er
 		handle, err = os.Create(fmt.Sprintf("out/%s-animals.csv", sortField))
 		checkErr(err)
 
-		_, err = handle.Write([]byte(header + "\n") )
+		_, err = handle.Write([]byte(header + "\n"))
 		checkErr(err)
 
 		c.handles[sortField] = handle
