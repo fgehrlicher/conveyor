@@ -8,13 +8,17 @@
 **Conveyor** is a lightweight multithreaded file processing library.  
 Think of it as a simple way to apply a function/method to every line in 1 - n file(s).
 
-This library can be used:
+A few good example use cases for this library are:
 
-* As a file-wide [Map](https://en.wikipedia.org/wiki/Map_(higher-order_function)) function (see [Example Usage](#example-usage)).
-
-  
-
-
+* Use it as a file-wide [map](https://en.wikipedia.org/wiki/Map_(higher-order_function)) function
+  (e.g [Example Usage](#example-usage)).
+* Drop or add new lines 
+  (e.g [Split Lines Example](https://github.com/fgehrlicher/conveyor/tree/main/example/split_lines)).
+* Split file into separate files 
+  (e.g [Animal Sorter Example](https://github.com/fgehrlicher/conveyor/tree/main/example/animal_sorter))
+* Count occurrences of certain things 
+  (e.g [Rune Counter Example](https://github.com/fgehrlicher/conveyor/tree/main/example/rune_counter))  
+...
 ## ⚠️ WIP ⚠️
 
 ## Installation
@@ -71,9 +75,8 @@ Additional Examples:
   replaces all occurrences of spaces with line breaks.
 
 ## Limitations 
-
+TODO
 ## Logging
-
+TODO
 ## Performance
-
-
+TODO
