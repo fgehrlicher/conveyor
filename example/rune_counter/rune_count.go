@@ -46,7 +46,7 @@ func NewRuneCounter(runes []rune) *RuneCounter {
 	}
 }
 
-func (c *RuneCounter) Process(line []byte, metadata conveyor.LineMetadata) (out []byte, err error) {
+func (c *RuneCounter) Process(line []byte, _ conveyor.LineMetadata) ([]byte, error) {
 	for _, r := range c.runes {
 		if count := strings.Count(string(line), string(r)); count > 0 {
 			c.Lock()
@@ -55,7 +55,7 @@ func (c *RuneCounter) Process(line []byte, metadata conveyor.LineMetadata) (out 
 		}
 	}
 
-	return nil, err
+	return nil, nil
 }
 
 func (c *RuneCounter) Result() string {

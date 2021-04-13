@@ -1,19 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strings"
 
 	"github.com/fgehrlicher/conveyor"
 )
-
-var textToRedact = []string{
-	"testmail@test.com",
-	"test@mail.de",
-	"ullamcorper",
-	"Lorem",
-}
 
 func main() {
 	resultFile, err := os.Create("redacted_data.txt")
@@ -30,10 +24,21 @@ func main() {
 
 	result := conveyor.NewQueue(chunks, 4, conveyor.LineProcessorFunc(Redact)).Work()
 
-	log.Printf("processed %d lines", result.Lines)
+	fmt.Printf(
+		"processed %d lines.\n%d chunks failed.\n",
+		result.Lines,
+		result.FailedChunks,
+	)
 }
 
-func Redact(line []byte, metadata conveyor.LineMetadata) ([]byte, error) {
+var textToRedact = []string{
+	"testmail@test.com",
+	"test@mail.de",
+	"ullamcorper",
+	"Lorem",
+}
+
+func Redact(line []byte, _ conveyor.LineMetadata) ([]byte, error) {
 	result := string(line)
 
 	for _, word := range textToRedact {

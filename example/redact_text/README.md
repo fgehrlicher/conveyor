@@ -1,1 +1,1 @@
-# redact emails example
+# Redact text example

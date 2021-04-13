@@ -1,1 +1,1 @@
-# Char count example
+# Rune counter example
