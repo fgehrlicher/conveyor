@@ -42,7 +42,7 @@ type ChunkResult struct {
 	EOF        bool
 }
 
-// Ok checks if the chunk processing was completed successfully.
+// Ok checks if the chunk was processed successfully.
 func (c *ChunkResult) Ok() bool {
 	return c.Err == nil
 }
