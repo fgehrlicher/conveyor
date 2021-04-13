@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -23,10 +24,14 @@ func main() {
 
 	result := conveyor.NewQueue(chunks, 4, conveyor.LineProcessorFunc(SplitLines)).Work()
 
-	log.Printf("processed %d lines", result.Lines)
+	fmt.Printf(
+		"processed %d lines.\n%d chunks failed.\n",
+		result.Lines,
+		result.FailedChunks,
+	)
 }
 
-func SplitLines(line []byte, metadata conveyor.LineMetadata) ([]byte, error) {
+func SplitLines(line []byte, _ conveyor.LineMetadata) ([]byte, error) {
 	return []byte(
 		strings.ReplaceAll(
 			strings.TrimSpace(string(line)),

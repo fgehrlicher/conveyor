@@ -1,4 +1,4 @@
-module github.com/fgehrlicher/conveyor/example/break_lines
+module github.com/fgehrlicher/conveyor/example/split_lines
 
 go 1.15
 
