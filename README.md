@@ -18,7 +18,7 @@ go get github.com/fgehrlicher/conveyor
 
 ```go
 func main() {
-	// Creates the output file
+	// Creat the output file
 	resultFile, _ := os.Create("redacted_data.txt")
 
 	// Instantiate a new ConcurrentWriter which wraps the resultFile handle.
@@ -26,14 +26,14 @@ func main() {
 	// io.Writer which is able to keep the chunk output in order.
 	w := conveyor.NewConcurrentWriter(resultFile, true)
 
-	// Splits the input file into chunks of 512 bytes with 
+	// Split the input file into chunks of 512 bytes with 
 	// the concurrent writer as output ChunkWriter.
 	chunks, _ := conveyor.GetChunksFromFile("data.txt", 512, w)
 
-	// Creates and execute a Queue with 4 workers and the Redact function as LineProcessor.
+	// Creat and execute a Queue with 4 workers and the Redact function as LineProcessor.
 	result := conveyor.NewQueue(chunks, 4, conveyor.LineProcessorFunc(Redact)).Work()
 
-	// Prints the number of processed lines.
+	// Print the number of processed lines.
 	log.Printf("processed %d lines", result.Lines)
 }
 
