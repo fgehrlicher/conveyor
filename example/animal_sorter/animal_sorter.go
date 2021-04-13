@@ -15,8 +15,8 @@ const (
 	chunkSize = 512
 	workerCount = 4
 
-	header = "id,name,scientific_name"
-	colorFieldIndex = 3
+	header         = "id,name,scientific_name"
+	sortFieldIndex = 3
 )
 
 func main() {
@@ -54,29 +54,29 @@ func (c *AnimalSorter) Process(line []byte, _ conveyor.LineMetadata) ([]byte, er
 	// get row slice
 	row := strings.Split(strings.TrimSuffix(string(line), "\n"), ",")
 
-	// get color
-	color := row[colorFieldIndex]
+	// get sortField
+	sortField := row[sortFieldIndex]
 
 	// Early return if row is header
-	if color == "color_code" {
+	if sortField == "code" {
 		return nil, nil
 	}
 
-	// create handle if color handle does not exist yet
-	handle, ok := c.handles[color]
+	// create handle if sortField handle does not exist yet
+	handle, ok := c.handles[sortField]
 	if !ok {
 		var err error
-		handle, err = os.Create(fmt.Sprintf("out/%s-animals.csv", color))
+		handle, err = os.Create(fmt.Sprintf("out/%s-animals.csv", sortField))
 		checkErr(err)
 
 		_, err = handle.Write([]byte(header + "\n") )
 		checkErr(err)
 
-		c.handles[color] = handle
+		c.handles[sortField] = handle
 	}
 
-	// write result to color handle
-	resultRow := []byte(strings.Join(row[:colorFieldIndex], ",") + "\n")
+	// write result to sortField handle
+	resultRow := []byte(strings.Join(row[:sortFieldIndex], ",") + "\n")
 	_, err := handle.Write(resultRow)
 	checkErr(err)
 
