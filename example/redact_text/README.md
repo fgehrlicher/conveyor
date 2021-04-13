@@ -1,1 +1,0 @@
-# Redact text example
