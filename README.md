@@ -5,7 +5,15 @@
 [![codecov](https://codecov.io/gh/fgehrlicher/conveyor/branch/main/graph/badge.svg?token=pC3OdgbO6V)](https://codecov.io/gh/fgehrlicher/conveyor)
 [![Go Report Card](https://goreportcard.com/badge/github.com/fgehrlicher/conveyor)](https://goreportcard.com/report/github.com/fgehrlicher/conveyor)
 
-conveyor is a lightweight multithreaded file processing library.
+**Conveyor** is a lightweight multithreaded file processing library.  
+Think of it as a simple way to apply a function/method to every line in 1 - n file(s).
+
+This library can be used:
+
+* As a file-wide [Map](https://en.wikipedia.org/wiki/Map_(higher-order_function)) function (see [Example Usage](#example-usage)).
+
+  
+
 
 ## ⚠️ WIP ⚠️
 
@@ -14,7 +22,9 @@ conveyor is a lightweight multithreaded file processing library.
 go get github.com/fgehrlicher/conveyor
 ```
 
+<a id="example-usage"></a>
 ## Example Usage
+Redact all occurrences of a given email:
 
 ```go
 func main() {
@@ -38,9 +48,9 @@ func main() {
 }
 
 // Text that should be redacted
-var emailToRedact = "testmail@test.com"
+const emailToRedact = "testmail@test.com"
 
-// Redact replaces all occurrences of "testmail@test.com" with x
+// Redact replaces all occurrences of "testmail@test.com" with "x"
 func Redact(line []byte, metadata conveyor.LineMetadata) ([]byte, error) {
 	result := strings.ReplaceAll(
 		string(line),
@@ -52,7 +62,13 @@ func Redact(line []byte, metadata conveyor.LineMetadata) ([]byte, error) {
 }
 ```
 
-See [examples](https://github.com/fgehrlicher/conveyor/tree/main/example) for detailed information on usage.
+Additional Examples:  
+* [Rune Counter](https://github.com/fgehrlicher/conveyor/tree/main/example/rune_counter)
+  counts and prints the number of occurrences of certain runes. 
+* [Animal Sorter](https://github.com/fgehrlicher/conveyor/tree/main/example/animal_sorter)
+  sorts csv entries by field and puts them into separate files.
+* [Split Lines](https://github.com/fgehrlicher/conveyor/tree/main/example/split_lines)
+  replaces all occurrences of spaces with line breaks.
 
 ## Limitations 
 
