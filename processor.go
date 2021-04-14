@@ -2,7 +2,7 @@ package conveyor
 
 // LineProcessor is the interface that wraps the Process method.
 //
-// Process get the line that needs to be processed and line metadata
+// Process gets the line that needs to be processed with the line metadata
 // and returns the converted line or an error if the conversion failed.
 // It is also valid to return an empty result if the line should be excluded from
 // the output e.g when the file should not be mapped but processed in
@@ -19,7 +19,7 @@ type LineMetadata struct {
 	Chunk *Chunk
 }
 
-// The LineProcessorFunc type is an adapter to allow the use of
+// The LineProcessorFunc type is an adapter that allows the use of
 // ordinary functions as LineProcessor.
 type LineProcessorFunc func([]byte, LineMetadata) ([]byte, error)
 

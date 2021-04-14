@@ -8,7 +8,7 @@ import (
 	"sync"
 )
 
-// Chosen by fair dice roll.
+// Chosen by a fair dice roll.
 const DefaultOverflowScanSize = 1024
 
 var (
