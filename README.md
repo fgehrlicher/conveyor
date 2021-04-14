@@ -32,7 +32,7 @@ Redact all occurrences of a given email:
 
 ```go
 func main() {
-	// Creat the output file
+	// Create the output file
 	resultFile, _ := os.Create("redacted_data.txt")
 
 	// Instantiate a new ConcurrentWriter which wraps the resultFile handle.
@@ -44,7 +44,7 @@ func main() {
 	// the concurrent writer as output ChunkWriter.
 	chunks, _ := conveyor.GetChunksFromFile("data.txt", 512, w)
 
-	// Creat and execute a Queue with 4 workers and the Redact function as LineProcessor.
+	// Create and execute a Queue with 4 workers and the Redact function as LineProcessor.
 	result := conveyor.NewQueue(chunks, 4, conveyor.LineProcessorFunc(Redact)).Work()
 
 	// Print the number of processed lines.
