@@ -6,15 +6,15 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/fgehrlicher/conveyor)](https://goreportcard.com/report/github.com/fgehrlicher/conveyor)
 
 **Conveyor** is a lightweight multithreaded file processing library.  
-Think of it as a simple way to apply a function/method to every line in 1 - n file(s).
+Think of it as a simple way to apply a function/method to every line in 1 to n file(s).
 
 A few good example use cases for this library are:
 
-* Use it as a file-wide [map](https://en.wikipedia.org/wiki/Map_(higher-order_function)) function
+* A file-wide [map](https://en.wikipedia.org/wiki/Map_(higher-order_function)) function
   (e.g [Example Usage](#example-usage)).
 * Drop or add new lines 
   (e.g [Split Lines Example](https://github.com/fgehrlicher/conveyor/tree/main/example/split_lines)).
-* Split file into separate files 
+* Split a file into separate files 
   (e.g [Animal Sorter Example](https://github.com/fgehrlicher/conveyor/tree/main/example/animal_sorter))
 * Count occurrences of certain things 
   (e.g [Rune Counter Example](https://github.com/fgehrlicher/conveyor/tree/main/example/rune_counter))  
@@ -70,7 +70,7 @@ Additional Examples:
 * [Rune Counter](https://github.com/fgehrlicher/conveyor/tree/main/example/rune_counter)
   counts and prints the number of occurrences of certain runes. 
 * [Animal Sorter](https://github.com/fgehrlicher/conveyor/tree/main/example/animal_sorter)
-  sorts csv entries by field and puts them into separate files.
+  sorts .csv entries by field and divides them into separate files.
 * [Split Lines](https://github.com/fgehrlicher/conveyor/tree/main/example/split_lines)
   replaces all occurrences of spaces with line breaks.
 

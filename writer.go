@@ -6,7 +6,7 @@ import (
 )
 
 // The ConcurrentWriter type is a thread-safe wrapper for
-// io.Writer which is able to keep the order of lines across all chunks.
+// io.Writer that is able to keep the order of lines across all chunks.
 type ConcurrentWriter struct {
 	handle io.Writer
 
