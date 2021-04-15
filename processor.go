@@ -15,8 +15,9 @@ type LineProcessor interface {
 // Line is the line number relative to the chunk.
 // Chunk is a pointer to the chunk which contains that line.
 type LineMetadata struct {
-	Line  int
-	Chunk *Chunk
+	WorkerId int
+	Line     int
+	Chunk    *Chunk
 }
 
 // The LineProcessorFunc type is an adapter that allows the use of

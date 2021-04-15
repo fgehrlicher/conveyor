@@ -17,6 +17,7 @@ var (
 
 // All buffs and handles are kept allocated for all iterations of Worker.Process.
 type Worker struct {
+	Id            int
 	TasksChan     chan Chunk
 	resultChan    chan ChunkResult
 	waitGroup     *sync.WaitGroup
@@ -38,6 +39,7 @@ type Worker struct {
 
 // NewWorker returns a new Worker
 func NewWorker(
+	id int,
 	tasks chan Chunk,
 	result chan ChunkResult,
 	lineProcessor LineProcessor,
@@ -46,6 +48,7 @@ func NewWorker(
 	waitGroup *sync.WaitGroup,
 ) *Worker {
 	return &Worker{
+		Id:            id,
 		TasksChan:     tasks,
 		resultChan:    result,
 		waitGroup:     waitGroup,
@@ -251,8 +254,9 @@ func (w *Worker) processOverflowLine() error {
 	convertedLine, err := w.lineProcessor.Process(
 		line,
 		LineMetadata{
-			Line:  w.chunkResult.Lines + 1,
-			Chunk: w.chunk,
+			WorkerId: w.Id,
+			Line:     w.chunkResult.Lines + 1,
+			Chunk:    w.chunk,
 		},
 	)
 	if err != nil {

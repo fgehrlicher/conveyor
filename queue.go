@@ -81,6 +81,7 @@ func (queue *Queue) Work() QueueResult {
 
 	for i := 0; i < queue.workers; i++ {
 		go NewWorker(
+			i+1,
 			queue.tasks,
 			queue.result,
 			queue.lineProcessor,

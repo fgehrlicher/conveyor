@@ -34,6 +34,7 @@ func TestWorkerReturnsErrorFromLineProcessor(t *testing.T) {
 	wg.Add(1)
 
 	conveyor.NewWorker(
+		1,
 		GetSingleChunkChan("testdata/data.txt", chunkSize, nil),
 		results,
 		conveyor.LineProcessorFunc(func(i []byte, metadata conveyor.LineMetadata) ([]byte, error) {
@@ -66,6 +67,7 @@ func TestWorkerReturnsErrorFromLastLineProcessed(t *testing.T) {
 
 	errLine := 100
 	conveyor.NewWorker(
+		1,
 		GetSingleChunkChan("testdata/data.txt", chunkSize, nil),
 		results,
 		conveyor.LineProcessorFunc(func(i []byte, metadata conveyor.LineMetadata) ([]byte, error) {
@@ -101,7 +103,7 @@ func TestWorkerFailsForInvalidOutputHandle(t *testing.T) {
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 
-	conveyor.NewWorker(tasks, results, NullLineProcessor, int64(chunkSize), 1024, wg).Work()
+	conveyor.NewWorker(1, tasks, results, NullLineProcessor, int64(chunkSize), 1024, wg).Work()
 
 	close(results)
 	wg.Wait()
@@ -133,7 +135,7 @@ func TestWorkerFailsForReadAfterSeek(t *testing.T) {
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 
-	conveyor.NewWorker(tasks, results, NullLineProcessor, int64(chunkSize), 1024, wg).Work()
+	conveyor.NewWorker(1, tasks, results, NullLineProcessor, int64(chunkSize), 1024, wg).Work()
 
 	close(results)
 	wg.Wait()
@@ -168,6 +170,7 @@ func TestWorkerFailsOverflowBuff(t *testing.T) {
 	close(tasks)
 
 	conveyor.NewWorker(
+		1,
 		tasks,
 		results,
 		NullLineProcessor,
