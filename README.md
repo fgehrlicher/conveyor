@@ -19,7 +19,6 @@ A few good example use cases for this library are:
 * Count occurrences of certain things 
   (e.g [Rune Counter Example](https://github.com/fgehrlicher/conveyor/tree/main/example/rune_counter))  
 ...
-## ⚠️ WIP ⚠️
 
 ## Installation
 ```
