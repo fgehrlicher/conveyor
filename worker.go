@@ -229,8 +229,9 @@ func (w *Worker) processLine(relativeIndex int) error {
 	line := w.buff[w.buffHead : w.buffHead+relativeIndex]
 	convertedLine, err := w.lineProcessor.Process(
 		line, LineMetadata{
-			Line:  w.chunkResult.Lines + 1,
-			Chunk: w.chunk,
+			WorkerId: w.Id,
+			Line:     w.chunkResult.Lines + 1,
+			Chunk:    w.chunk,
 		},
 	)
 
