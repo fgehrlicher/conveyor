@@ -180,7 +180,7 @@ func (w *Worker) readOverflowInBuff() error {
 		}
 
 		i := bytes.IndexByte(scanBuff, '\n')
-		if i > 0 {
+		if i != -1 {
 			w.overflowBuffHead += i
 			w.overflowBuff = w.overflowBuff[:w.overflowBuffHead]
 			break
